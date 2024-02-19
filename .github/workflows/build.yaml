@@ -18,9 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { runner: windows-latest, os: windows, arch: x64,    archive_ext: .zip }
-        - { runner: ubuntu-latest,  os: linux,   arch: x86_64, archive_ext: .tar.gz }
-        - { runner: macos-latest,   os: macos,   arch: x86_64, archive_ext: .tar.gz }
+        - { runner: windows-latest, os: windows, qt-os: windows, qt-arch: win64_msvc2019_64, arch: x64,    archive_ext: .zip }
+        - { runner: ubuntu-latest,  os: linux,   qt-os: linux,   qt-arch: gcc_64,            arch: x86_64, archive_ext: .tar.gz }
+        - { runner: macos-latest,   os: macos,   qt-os: mac,     qt-arch: clang_64,          arch: x86_64, archive_ext: .tar.gz }
         #- { runner: macos-latest,   os: macos,   arch: arm64,  archive_ext: .tar.gz }
         mode: [debug, releasedbg]
 
@@ -47,12 +47,13 @@ jobs:
         fetch-depth: 0 # Clone the whole repository to get correct tags and branches
 
     - name: Install Qt
-      uses: WillBrennan/yaqti@2021.07.27.1
+      uses: jurplel/install-qt-action@v3
       with:
         version: '5.12.2'
-        host: '${{ matrix.platform.os }}'
+        host: '${{ matrix.platform.qt-os }}'
         target: 'desktop'
-        modules: ''
+        arch: '${{ matrix.platform.qt-arch }}'
+        set-env: true
 
     # Install xmake
     - name: Setup xmake
