@@ -1,4 +1,4 @@
-#include "loggerfactory.h"
+#include "loggerFactory.h"
 
 namespace SFG {
 namespace SystemSimulator {

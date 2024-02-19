@@ -20,7 +20,7 @@ target( "Config-HMI" )
     add_includedirs( "include" )
 
     add_headerfiles( "include/*.h" )
-    add_files( "include/mainwindow.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
+    add_files( "include/mainWindow.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
 
     add_files( "src/*.cpp" )
 
