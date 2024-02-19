@@ -6,19 +6,19 @@
     {
       "label": "XMake configure debug (x64)",
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=debug -vD >_build_logs\\01_configure_debug.txt 2>&1",
+      "command": "xmake config --plat=windows --arch=x64 --mode=debug >_build_logs\\01_configure_debug.txt 2>&1",
       "problemMatcher": []
     },
     {
       "label": "XMake configure release (x64)",
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=release -vD >_build_logs\\01_configure_release.txt 2>&1",
+      "command": "xmake config --plat=windows --arch=x64 --mode=release >_build_logs\\01_configure_release.txt 2>&1",
       "problemMatcher": []
     },
     {
       "label": "XMake build",
       "type": "shell",
-      "command": "xmake build -avD >_build_logs\\02_build.txt 2>&1",
+      "command": "xmake build -a >_build_logs\\02_build.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -40,16 +40,40 @@
       "problemMatcher": []
     },
     {
+      "label": "XMake test",
+      "type": "shell",
+      "command": "xmake test >_build_logs\\05_test.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test debug (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake build debug (x64)",
+        "XMake test"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test release (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake build release (x64)",
+        "XMake test"
+      ],
+      "problemMatcher": []
+    },
+    {
       "label": "XMake package",
       "type": "shell",
-      "command": "xmake package -avD -o E:\\xmake_packages >_build_logs\\03_package.txt 2>&1",
+      "command": "xmake package -avo E:\\xmake_packages >_build_logs\\10_package.txt 2>&1",
       "problemMatcher": []
     },
     {
       "label": "XMake package release (x64)",
       "dependsOrder": "sequence",
       "dependsOn": [
-        "XMake build release (x64)",
+        "XMake test release (x64)",
         "XMake package"
       ],
       "problemMatcher": []
@@ -57,14 +81,14 @@
     {
       "label": "XMake install",
       "type": "shell",
-      "command": "xmake install -avD -o E:\\System_Simulator >_build_logs\\04_install.txt 2>&1",
+      "command": "xmake install -avo E:\\System_Simulator >_build_logs\\20_install.txt 2>&1",
       "problemMatcher": []
     },
     {
       "label": "XMake install release (x64)",
       "dependsOrder": "sequence",
       "dependsOn": [
-        "XMake build release (x64)",
+        "XMake test release (x64)",
         "XMake install"
       ],
       "problemMatcher": []
@@ -73,10 +97,10 @@
       "label": "XMake run release (x64)",
       "dependsOrder": "sequence",
       "dependsOn": [
-        "XMake build release (x64)"
+        "XMake test release (x64)"
       ],
       "type": "shell",
-      "command": "xmake run -vD Config-HMI >_build_logs\\stdout.log 2>_build_logs\\stderr.log",
+      "command": "xmake run Config-HMI >_build_logs\\stdout.log 2>_build_logs\\stderr.log",
       "problemMatcher": []
     }
   ]

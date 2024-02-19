@@ -34,3 +34,14 @@ target( "Config-HMI" )
         import( "core.project.config" )
         os.cp( path.join( "$(scriptdir)", "config" ), target.installdir( target ) )
     end )
+
+for _, file in ipairs(os.files("test/*.cpp")) do
+    local name = path.basename(file)
+    target(name)
+        set_kind("binary")
+        add_deps( "Config-HMI" )
+        add_deps( "Proto-Messages" )
+        set_default(false)
+        add_files("test/" .. name .. ".cpp")
+        add_tests("default")
+end
