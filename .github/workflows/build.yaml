@@ -47,7 +47,7 @@ jobs:
         fetch-depth: 0 # Clone the whole repository to get correct tags and branches
 
     - name: Install Qt
-      uses: WillBrennan/yaqti
+      uses: WillBrennan/yaqti@2021.07.27.1
       with:
         version: '5.12.2'
         host: '${{ matrix.platform.os }}'
