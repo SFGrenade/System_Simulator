@@ -54,6 +54,7 @@ jobs:
         target: 'desktop'
         arch: '${{ matrix.platform.qt-arch }}'
         set-env: true
+        cache: true
 
     # Install xmake
     - name: Setup xmake
