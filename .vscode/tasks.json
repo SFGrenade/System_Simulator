@@ -1,0 +1,83 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "XMake configure debug (x64)",
+      "type": "shell",
+      "command": "xmake config --plat=windows --arch=x64 --mode=debug -vD >_build_logs\\01_configure_debug.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake configure release (x64)",
+      "type": "shell",
+      "command": "xmake config --plat=windows --arch=x64 --mode=release -vD >_build_logs\\01_configure_release.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake build",
+      "type": "shell",
+      "command": "xmake build -avD >_build_logs\\02_build.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake build debug (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake configure debug (x64)",
+        "XMake build"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake build release (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake configure release (x64)",
+        "XMake build"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake package",
+      "type": "shell",
+      "command": "xmake package -avD -o E:\\xmake_packages >_build_logs\\03_package.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake package release (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake build release (x64)",
+        "XMake package"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake install",
+      "type": "shell",
+      "command": "xmake install -avD -o E:\\System_Simulator >_build_logs\\04_install.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake install release (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake build release (x64)",
+        "XMake install"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake run release (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake build release (x64)"
+      ],
+      "type": "shell",
+      "command": "xmake run -vD Config-HMI >_build_logs\\stdout.log 2>_build_logs\\stderr.log",
+      "problemMatcher": []
+    }
+  ]
+}
