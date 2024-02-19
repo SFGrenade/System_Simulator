@@ -46,6 +46,14 @@ jobs:
       with:
         fetch-depth: 0 # Clone the whole repository to get correct tags and branches
 
+    - name: Install Qt
+    uses: WillBrennan/yaqti
+    with:
+        version: '5.12.2'
+        host: '${{ matrix.platform.os }}'
+        target: 'desktop'
+        modules: ''
+
     # Install xmake
     - name: Setup xmake
       uses: xmake-io/github-action-setup-xmake@v1
