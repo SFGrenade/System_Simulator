@@ -1,6 +1,4 @@
-add_requires( "cppzmq" )
 add_requires( "fmt" )
-add_requires( "protobuf-cpp" )
 add_requires( "spdlog" )
 add_requires( "simpleini" )
 
@@ -9,9 +7,7 @@ add_requireconfs( "spdlog", { configs = { fmt_external = true } } )
 target( "Config-HMI" )
     add_rules("qt.widgetapp")
 
-    add_packages( "cppzmq" )
     add_packages( "fmt" )
-    add_packages( "protobuf-cpp" )
     add_packages( "spdlog" )
     add_packages( "simpleini" )
 
