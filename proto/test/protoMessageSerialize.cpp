@@ -1,4 +1,4 @@
-#include <networkMessages.pb.h>
+#include <database.pb.h>
 #include <string>
 
 int main( int argc, char** argv ) {

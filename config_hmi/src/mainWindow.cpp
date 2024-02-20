@@ -1,6 +1,6 @@
 #include "mainWindow.h"
 
-#include <networkMessages.pb.h>
+#include <database.pb.h>
 
 #include "loggerFactory.h"
 
