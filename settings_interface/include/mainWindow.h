@@ -12,7 +12,7 @@
 
 namespace SFG {
 namespace SystemSimulator {
-namespace ConfigHmi {
+namespace SettingsInterface {
 
 class MainWindow : public QMainWindow {
   Q_OBJECT;
@@ -33,7 +33,7 @@ class MainWindow : public QMainWindow {
   void buttonClicked();
 };
 
-}  // namespace ConfigHmi
+}  // namespace SettingsInterface
 }  // namespace SystemSimulator
 }  // namespace SFG
 

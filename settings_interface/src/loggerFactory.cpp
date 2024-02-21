@@ -2,7 +2,7 @@
 
 namespace SFG {
 namespace SystemSimulator {
-namespace ConfigHmi {
+namespace SettingsInterface {
 
 std::shared_ptr< spdlog::sinks::stdout_color_sink_mt > LoggerFactory::consoleSink_ = nullptr;
 std::shared_ptr< spdlog::sinks::basic_file_sink_mt > LoggerFactory::fileSink_ = nullptr;
@@ -61,6 +61,6 @@ spdlogger LoggerFactory::get_logger( std::string const& name ) {
   return ret;
 }
 
-}  // namespace ConfigHmi
+}  // namespace SettingsInterface
 }  // namespace SystemSimulator
 }  // namespace SFG

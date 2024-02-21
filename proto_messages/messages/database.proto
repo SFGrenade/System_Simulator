@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package SFG.SystemSimulator.Proto;
+package SFG.SystemSimulator.ProtoMessages;
 
 message MsgContent {
   string username = 1;

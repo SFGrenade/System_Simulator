@@ -10,7 +10,7 @@
 
 namespace SFG {
 namespace SystemSimulator {
-namespace ConfigHmi {
+namespace SettingsInterface {
 
 class LoggerFactory {
   public:
@@ -27,7 +27,7 @@ class LoggerFactory {
   static std::mutex loggersMutex_;
 };
 
-}  // namespace ConfigHmi
+}  // namespace SettingsInterface
 }  // namespace SystemSimulator
 }  // namespace SFG
 

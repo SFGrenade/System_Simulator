@@ -6,7 +6,7 @@
 
 namespace SFG {
 namespace SystemSimulator {
-namespace ConfigHmi {
+namespace SettingsInterface {
 
 MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), logger_( LoggerFactory::get_logger( "MainWindow" ) ) {
   logger_->trace( fmt::runtime( "MainWindow( parent: {:p} )" ), static_cast< void * >( parent ) );
@@ -37,7 +37,7 @@ MainWindow::~MainWindow() {
 void MainWindow::buttonClicked() {
   logger_->trace( fmt::runtime( "buttonClicked()" ) );
 
-  SFG::SystemSimulator::Proto::MsgContent myMessage;
+  SFG::SystemSimulator::ProtoMessages::MsgContent myMessage;
   myMessage.set_username( "set_username" );
   myMessage.set_msgtext( "set_msgtext" );
   logger_->trace( fmt::runtime( "buttonClicked - myMessage.username: '{:s}'" ), myMessage.username() );
@@ -47,6 +47,6 @@ void MainWindow::buttonClicked() {
   logger_->trace( fmt::runtime( "buttonClicked()~" ) );
 }
 
-}  // namespace ConfigHmi
+}  // namespace SettingsInterface
 }  // namespace SystemSimulator
 }  // namespace SFG
