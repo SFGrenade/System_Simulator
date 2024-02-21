@@ -34,5 +34,5 @@ end
 
 add_requireconfs( "*", { configs = { shared = false } } )
 
-includes( "config_hmi" )
-includes( "proto" )
+includes( "proto_messages" )
+includes( "settings_interface" )

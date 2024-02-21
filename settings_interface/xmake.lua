@@ -4,7 +4,7 @@ add_requires( "simpleini" )
 
 add_requireconfs( "spdlog", { configs = { fmt_external = true } } )
 
-target( "Config-HMI" )
+target( "Settings-Interface" )
     add_rules("qt.widgetapp")
 
     add_packages( "fmt" )
@@ -35,7 +35,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
         set_kind( "binary" )
-        add_deps(  "Config-HMI"  )
+        add_deps(  "Settings-Interface"  )
         set_default( false )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )

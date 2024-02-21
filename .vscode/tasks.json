@@ -6,13 +6,13 @@
     {
       "label": "XMake configure debug (x64)",
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=debug >_build_logs\\01_configure_debug.txt 2>&1",
+      "command": "xmake config --plat=windows --arch=x64 --mode=debug --kind=shared >_build_logs\\01_configure_debug.txt 2>&1",
       "problemMatcher": []
     },
     {
       "label": "XMake configure release (x64)",
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=release >_build_logs\\01_configure_release.txt 2>&1",
+      "command": "xmake config --plat=windows --arch=x64 --mode=release --kind=shared >_build_logs\\01_configure_release.txt 2>&1",
       "problemMatcher": []
     },
     {
