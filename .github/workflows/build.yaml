@@ -100,8 +100,9 @@ jobs:
       run: xmake test
 
     - name: Install
+      if: ${{ matrix.mode == 'releasedbg' || matrix.mode == 'release' }}
       run: |
-        xmake install -vD -o dest/
+        xmake install -vo dest/
         if [ "$RUNNER_OS" == "Linux" ]; then
           mv ./dest/lib/*.so ./dest/bin/ || true
         elif [ "$RUNNER_OS" == "macOS" ]; then
@@ -112,6 +113,7 @@ jobs:
       shell: bash
     
     - name: Archive result
+      if: ${{ matrix.mode == 'releasedbg' || matrix.mode == 'release' }}
       uses: ihiroky/archive-action@v1
       with:
         root_dir: dest
@@ -119,6 +121,7 @@ jobs:
         verbose: true
 
     - name: Compute checksum of archive
+      if: ${{ matrix.mode == 'releasedbg' || matrix.mode == 'release' }}
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
           sha256sum -b "$OUTPUT_FILE" > "$OUTPUT_FILE.sha256"
@@ -130,7 +133,7 @@ jobs:
     # Release tags (for tags)
     - name: Upload binaries to release (Tag)
       uses: svenstaro/upload-release-action@v2
-      if: ${{ startsWith(github.event.ref, 'refs/tags/') && matrix.mode == 'releasedbg' }}
+      if: ${{ startsWith(github.event.ref, 'refs/tags/') && ( matrix.mode == 'releasedbg' || matrix.mode == 'release' ) }}
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ env.OUTPUT_FILE }}
@@ -140,7 +143,7 @@ jobs:
 
     - name: Upload checksum to release (Tag)
       uses: svenstaro/upload-release-action@v2
-      if: ${{ startsWith(github.event.ref, 'refs/tags/') && matrix.mode == 'releasedbg' }}
+      if: ${{ startsWith(github.event.ref, 'refs/tags/') && ( matrix.mode == 'releasedbg' || matrix.mode == 'release' ) }}
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ env.OUTPUT_FILE }}.sha256
