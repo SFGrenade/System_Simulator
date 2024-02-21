@@ -101,7 +101,7 @@ jobs:
 
     - name: Install
       run: |
-        xmake install -o -vD dest/
+        xmake install -vD -o dest/
         if [ "$RUNNER_OS" == "Linux" ]; then
           mv ./dest/lib/*.so ./dest/bin/ || true
         elif [ "$RUNNER_OS" == "macOS" ]; then
