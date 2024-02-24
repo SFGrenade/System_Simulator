@@ -1,20 +1,20 @@
-#ifndef CONFIG_HMI_LOGGERFACTORY_H_
-#define CONFIG_HMI_LOGGERFACTORY_H_
+#ifndef LOGGER_LOGGERFACTORY_H_
+#define LOGGER_LOGGERFACTORY_H_
 
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 
-#include "_spdlog.h"
+#include "SFG/SystemSimulator/Logger/_spdlog.h"
 
 namespace SFG {
 namespace SystemSimulator {
-namespace SettingsInterface {
+namespace Logger {
 
 class LoggerFactory {
   public:
-  static void init();
+  static void init( std::string const& logFileName = "log.log" );
   static void deinit();
 
   static spdlogger get_logger( std::string const& name );
@@ -27,8 +27,8 @@ class LoggerFactory {
   static std::mutex loggersMutex_;
 };
 
-}  // namespace SettingsInterface
+}  // namespace Logger
 }  // namespace SystemSimulator
 }  // namespace SFG
 
-#endif /* CONFIG_HMI_LOGGERFACTORY_H_ */
+#endif /* LOGGER_LOGGERFACTORY_H_ */

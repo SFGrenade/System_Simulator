@@ -1,8 +1,8 @@
-#include "loggerFactory.h"
+#include "SFG/SystemSimulator/Logger/loggerFactory.h"
 
 namespace SFG {
 namespace SystemSimulator {
-namespace SettingsInterface {
+namespace Logger {
 
 std::shared_ptr< spdlog::sinks::stdout_color_sink_mt > LoggerFactory::consoleSink_ = nullptr;
 std::shared_ptr< spdlog::sinks::basic_file_sink_mt > LoggerFactory::fileSink_ = nullptr;
@@ -10,13 +10,13 @@ std::string LoggerFactory::loggerPattern_ = "[%Y-%m-%d %H:%M:%S.%e] [thread %t] 
 std::map< std::string, spdlogger > LoggerFactory::loggers_ = std::map< std::string, spdlogger >();
 std::mutex LoggerFactory::loggersMutex_ = std::mutex();
 
-void LoggerFactory::init() {
+void LoggerFactory::init( std::string const& logFileName ) {
   LoggerFactory::loggersMutex_.lock();
   LoggerFactory::loggers_.clear();
 
   LoggerFactory::consoleSink_ = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
   LoggerFactory::consoleSink_->set_level( spdlog::level::trace );
-  LoggerFactory::fileSink_ = std::make_shared< spdlog::sinks::basic_file_sink_mt >( "log.log", true );
+  LoggerFactory::fileSink_ = std::make_shared< spdlog::sinks::basic_file_sink_mt >( logFileName, true );
   LoggerFactory::fileSink_->set_level( spdlog::level::trace );
 
   spdlog::sinks_init_list truncatedSinkList = { LoggerFactory::fileSink_, LoggerFactory::consoleSink_ };
@@ -61,6 +61,6 @@ spdlogger LoggerFactory::get_logger( std::string const& name ) {
   return ret;
 }
 
-}  // namespace SettingsInterface
+}  // namespace Logger
 }  // namespace SystemSimulator
 }  // namespace SFG

@@ -1,8 +1,13 @@
+add_requires( "portaudio" )
 add_requires( "simpleini" )
 
-target( "Settings-Interface" )
-    add_rules("qt.widgetapp")
+-- because this otherwise uses MT and we have MD
+--add_requireconfs( "portaudio", { configs = { shared = true } } )
 
+target( "Audio-Interface" )
+    set_kind("binary")
+
+    add_packages( "portaudio" )
     add_packages( "simpleini" )
 
     add_deps( "Logger" )
@@ -10,12 +15,9 @@ target( "Settings-Interface" )
 
     add_includedirs( "include", { public = true } )
 
-    add_headerfiles( "include/SFG/SystemSimulator/SettingsInterface/*.h" )
-    add_files( "include/SFG/SystemSimulator/SettingsInterface/mainWindow.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
+    add_headerfiles( "include/SFG/SystemSimulator/AudioInterface/*.h" )
 
     add_files( "src/*.cpp" )
-
-    add_frameworks( "QtCore", "QtGui", "QtWidgets" )
 
     after_build( function ( target )
         import( "core.project.config" )
@@ -30,7 +32,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
         set_kind( "binary" )
-        add_deps(  "Settings-Interface"  )
+        add_deps(  "Audio-Interface"  )
         set_default( false )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )

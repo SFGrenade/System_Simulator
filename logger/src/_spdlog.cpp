@@ -1,4 +1,8 @@
-#include "_spdlog.h"
+#include "SFG/SystemSimulator/Logger/_spdlog.h"
+
+namespace SFG {
+namespace SystemSimulator {
+namespace Logger {
 
 ScopedLog::ScopedLog( spdlogger logger, std::string const& startMessage, std::string const& stopMessage )
     : logger_( logger ), startMessage_( startMessage ), stopMessage_( stopMessage ) {
@@ -8,3 +12,7 @@ ScopedLog::ScopedLog( spdlogger logger, std::string const& startMessage, std::st
 ScopedLog::~ScopedLog() {
   this->logger_->trace( this->stopMessage_ );
 }
+
+}  // namespace Logger
+}  // namespace SystemSimulator
+}  // namespace SFG

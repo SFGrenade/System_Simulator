@@ -1,14 +1,12 @@
-#include "mainWindow.h"
+#include "SFG/SystemSimulator/SettingsInterface/mainWindow.h"
 
 #include <database.pb.h>
-
-#include "loggerFactory.h"
 
 namespace SFG {
 namespace SystemSimulator {
 namespace SettingsInterface {
 
-MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), logger_( LoggerFactory::get_logger( "MainWindow" ) ) {
+MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "MainWindow" ) ) {
   logger_->trace( fmt::runtime( "MainWindow( parent: {:p} )" ), static_cast< void * >( parent ) );
 
   _MenuBar = new QMenuBar( this );

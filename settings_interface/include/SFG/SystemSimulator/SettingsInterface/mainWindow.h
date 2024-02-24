@@ -1,5 +1,5 @@
-#ifndef CONFIG_HMI_MAINWINDOW_H_
-#define CONFIG_HMI_MAINWINDOW_H_
+#ifndef SETTINGS_INTERFACE_MAINWINDOW_H_
+#define SETTINGS_INTERFACE_MAINWINDOW_H_
 
 #include <QMainWindow>
 #include <QMenuBar>
@@ -7,8 +7,7 @@
 #include <QStatusBar>
 #include <QVBoxLayout>
 #include <QWidget>
-
-#include "_spdlog.h"
+#include <SFG/SystemSimulator/Logger/loggerFactory.h>
 
 namespace SFG {
 namespace SystemSimulator {
@@ -22,7 +21,7 @@ class MainWindow : public QMainWindow {
   ~MainWindow();
 
   private:
-  spdlogger logger_;
+  SFG::SystemSimulator::Logger::spdlogger logger_;
   QMenuBar* _MenuBar;
   QWidget* _Widget;
   QStatusBar* _StatusBar;
@@ -37,4 +36,4 @@ class MainWindow : public QMainWindow {
 }  // namespace SystemSimulator
 }  // namespace SFG
 
-#endif /* CONFIG_HMI_MAINWINDOW_H_ */
+#endif /* SETTINGS_INTERFACE_MAINWINDOW_H_ */

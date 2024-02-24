@@ -1,5 +1,5 @@
-#ifndef CONFIG_HMI_SPDLOG_H_
-#define CONFIG_HMI_SPDLOG_H_
+#ifndef LOGGER_SPDLOG_H_
+#define LOGGER_SPDLOG_H_
 
 #include <memory>
 #include <string>
@@ -17,6 +17,10 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
+namespace SFG {
+namespace SystemSimulator {
+namespace Logger {
+
 typedef std::shared_ptr< spdlog::logger > spdlogger;
 
 class ScopedLog {
@@ -30,4 +34,8 @@ class ScopedLog {
   std::string stopMessage_;
 };
 
-#endif /* CONFIG_HMI_SPDLOG_H_ */
+}  // namespace Logger
+}  // namespace SystemSimulator
+}  // namespace SFG
+
+#endif /* LOGGER_SPDLOG_H_ */
