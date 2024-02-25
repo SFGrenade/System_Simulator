@@ -12,11 +12,11 @@ struct MySettingsStruct {
   float outputMultiplier;
 
   PortAudio::PaStream *portAudioStream;
-  int numInputChannels;
-  int numOutputChannels;
-  PortAudio::PaSampleFormat sampleFormat;
+  PortAudio::PaStreamParameters inputSettings;
+  PortAudio::PaStreamParameters outputSettings;
   double sampleRate;
   unsigned long framesPerBuffer;
+  PortAudio::PaStreamFlags flags;
 };
 
 int audioMonitoringCallback( const void *inputBuffer,
@@ -72,14 +72,14 @@ int main( int argc, char **argv ) {
     if( ( numHostApis = PortAudio::Pa_GetHostApiCount() ) < 0 ) {
       spdlog::error( fmt::runtime( "PortAudio Pa_GetHostApiCount error: {:#x}, {:s}" ), numHostApis, PortAudio::Pa_GetErrorText( numHostApis ) );
     } else {
-      spdlog::error( fmt::runtime( "APIs:" ) );
+      spdlog::info( fmt::runtime( "APIs:" ) );
       for( PortAudio::PaHostApiIndex i = 0; i < numHostApis; i++ ) {
         PortAudio::PaHostApiInfo const *hostApiInfo = PortAudio::Pa_GetHostApiInfo( i );
-        spdlog::error( fmt::runtime( "- '{:s}', version {:d}:" ), hostApiInfo->name, hostApiInfo->structVersion );
-        spdlog::error( fmt::runtime( "  - type: {:d}" ), static_cast< int >( hostApiInfo->type ) );
-        spdlog::error( fmt::runtime( "  - deviceCount: {:d}" ), hostApiInfo->deviceCount );
-        spdlog::error( fmt::runtime( "  - defaultInputDevice: {:d}" ), hostApiInfo->defaultInputDevice );
-        spdlog::error( fmt::runtime( "  - defaultOutputDevice: {:d}" ), hostApiInfo->defaultOutputDevice );
+        spdlog::info( fmt::runtime( "- {:d}: '{:s}', version {:d}:" ), i, hostApiInfo->name, hostApiInfo->structVersion );
+        spdlog::info( fmt::runtime( "  - type: {:d}" ), static_cast< int >( hostApiInfo->type ) );
+        spdlog::info( fmt::runtime( "  - deviceCount: {:d}" ), hostApiInfo->deviceCount );
+        spdlog::info( fmt::runtime( "  - defaultInputDevice: '{:s}'" ), PortAudio::Pa_GetDeviceInfo( hostApiInfo->defaultInputDevice )->name );
+        spdlog::info( fmt::runtime( "  - defaultOutputDevice: '{:s}'" ), PortAudio::Pa_GetDeviceInfo( hostApiInfo->defaultOutputDevice )->name );
       }
     }
 
@@ -87,39 +87,47 @@ int main( int argc, char **argv ) {
     if( ( numDevices = PortAudio::Pa_GetDeviceCount() ) < 0 ) {
       spdlog::error( fmt::runtime( "PortAudio Pa_GetDeviceCount error: {:#x}, {:s}" ), numDevices, PortAudio::Pa_GetErrorText( numDevices ) );
     } else {
-      spdlog::error( fmt::runtime( "Devices:" ) );
+      spdlog::info( fmt::runtime( "Devices:" ) );
       for( PortAudio::PaDeviceIndex i = 0; i < numDevices; i++ ) {
         PortAudio::PaDeviceInfo const *deviceInfo = PortAudio::Pa_GetDeviceInfo( i );
-        spdlog::error( fmt::runtime( "- '{:s}', version {:d}:" ), deviceInfo->name, deviceInfo->structVersion );
-        spdlog::error( fmt::runtime( "  - hostApi: {:d}" ), deviceInfo->hostApi );
-        spdlog::error( fmt::runtime( "  - maxInputChannels: {:d}" ), deviceInfo->maxInputChannels );
-        spdlog::error( fmt::runtime( "  - maxOutputChannels: {:d}" ), deviceInfo->maxOutputChannels );
-        spdlog::error( fmt::runtime( "  - defaultLowInputLatency: {:f}" ), deviceInfo->defaultLowInputLatency );
-        spdlog::error( fmt::runtime( "  - defaultLowOutputLatency: {:f}" ), deviceInfo->defaultLowOutputLatency );
-        spdlog::error( fmt::runtime( "  - defaultHighInputLatency: {:f}" ), deviceInfo->defaultHighInputLatency );
-        spdlog::error( fmt::runtime( "  - defaultHighOutputLatency: {:f}" ), deviceInfo->defaultHighOutputLatency );
-        spdlog::error( fmt::runtime( "  - defaultSampleRate: {:f}" ), deviceInfo->defaultSampleRate );
+        spdlog::info( fmt::runtime( "- {:d}: '{:s}', version {:d}:" ), i, deviceInfo->name, deviceInfo->structVersion );
+        spdlog::info( fmt::runtime( "  - hostApi: '{:s}'" ), PortAudio::Pa_GetHostApiInfo( deviceInfo->hostApi )->name );
+        spdlog::info( fmt::runtime( "  - maxInputChannels: {:d}" ), deviceInfo->maxInputChannels );
+        spdlog::info( fmt::runtime( "  - maxOutputChannels: {:d}" ), deviceInfo->maxOutputChannels );
+        spdlog::info( fmt::runtime( "  - defaultLowInputLatency: {:f}" ), deviceInfo->defaultLowInputLatency );
+        spdlog::info( fmt::runtime( "  - defaultLowOutputLatency: {:f}" ), deviceInfo->defaultLowOutputLatency );
+        spdlog::info( fmt::runtime( "  - defaultHighInputLatency: {:f}" ), deviceInfo->defaultHighInputLatency );
+        spdlog::info( fmt::runtime( "  - defaultHighOutputLatency: {:f}" ), deviceInfo->defaultHighOutputLatency );
+        spdlog::info( fmt::runtime( "  - defaultSampleRate: {:f}" ), deviceInfo->defaultSampleRate );
       }
     }
 
-
     MySettingsStruct myData;
+    memset( &myData, 0, sizeof( myData ) );
     myData.outputMultiplier = 0.25f;
     myData.portAudioStream = nullptr;
-    myData.numInputChannels = 2;
-    myData.numOutputChannels = 2;
-    myData.sampleFormat = PortAudio::float32;
+    myData.inputSettings.device = 15;
+    myData.inputSettings.channelCount = 1;
+    myData.inputSettings.sampleFormat = PortAudio::float32;
+    myData.inputSettings.suggestedLatency = PortAudio::Pa_GetDeviceInfo( myData.inputSettings.device )->defaultLowInputLatency;
+    myData.inputSettings.hostApiSpecificStreamInfo = nullptr;
+    myData.outputSettings.device = 12;
+    myData.outputSettings.channelCount = 1;
+    myData.outputSettings.sampleFormat = PortAudio::float32;
+    myData.outputSettings.suggestedLatency = PortAudio::Pa_GetDeviceInfo( myData.outputSettings.device )->defaultLowInputLatency;
+    myData.outputSettings.hostApiSpecificStreamInfo = nullptr;
     myData.sampleRate = 48000;
     myData.framesPerBuffer = 256;
+    myData.flags = PortAudio::noFlag;
 
-    if( ( err = PortAudio::Pa_OpenDefaultStream( &myData.portAudioStream,
-                                                 myData.numInputChannels,
-                                                 myData.numOutputChannels,
-                                                 myData.sampleFormat,
-                                                 myData.sampleRate,
-                                                 myData.framesPerBuffer,
-                                                 audioMonitoringCallback,
-                                                 &myData ) )
+    if( ( err = PortAudio::Pa_OpenStream( &myData.portAudioStream,
+                                          &myData.inputSettings,
+                                          &myData.outputSettings,
+                                          myData.sampleRate,
+                                          myData.framesPerBuffer,
+                                          myData.flags,
+                                          audioMonitoringCallback,
+                                          &myData ) )
         != PortAudio::PaErrorCode::paNoError ) {
       spdlog::error( fmt::runtime( "PortAudio Pa_OpenDefaultStream error: {:#x}, {:s}" ), err, PortAudio::Pa_GetErrorText( err ) );
     } else {
