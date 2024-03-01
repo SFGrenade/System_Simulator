@@ -1,8 +1,5 @@
 add_requires( "simpleini" )
 
--- because this otherwise uses MT and we have MD
---add_requireconfs( "simpleini", { configs = { shared = true } } )
-
 target( "Configuration" )
     set_kind( "static" )
     --set_kind( "shared" )
@@ -15,6 +12,7 @@ target( "Configuration" )
     add_headerfiles( "include/SFG/SystemSimulator/Configuration/*.h" )
 
     add_files( "src/*.cpp" )
+    remove_files( "src/main.cpp" )
 
     after_build( function ( target )
         import( "core.project.config" )

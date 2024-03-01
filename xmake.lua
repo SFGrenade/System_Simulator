@@ -30,11 +30,15 @@ if is_mode( "release" ) then
     add_defines( "NDEBUG" )
 end
 
+-- maybe this helps for the ci?
+set_policy("build.across_targets_in_parallel", false)
+
 --add_repositories( "local-repo E:\\xmake_packages" )
 
 add_requireconfs( "*", { configs = { shared = false } } )
 
 includes( "audio_interface" )
+includes( "configuration" )
 includes( "logger" )
 includes( "login_server" )
 includes( "proto_messages" )
