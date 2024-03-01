@@ -94,7 +94,7 @@ jobs:
         key: ${{ steps.restore-depcache.outputs.cache-primary-key }}
 
     - name: Build
-      run: xmake
+      run: xmake build -a
 
     - name: Run tests
       run: xmake test
