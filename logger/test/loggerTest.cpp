@@ -3,8 +3,7 @@
 #include <vector>
 
 int main( int argc, char** argv ) {
-  SFG::SystemSimulator::Logger::LoggerFactory::init();
-
+  SFG::SystemSimulator::Logger::LoggerFactory::init( "loggerTest.log", false );
   std::vector< std::string > args;
   for( int i = 0; i < argc; i++ ) {
     args.push_back( std::string( argv[i] ) );
@@ -12,7 +11,6 @@ int main( int argc, char** argv ) {
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
   spdlog::trace( fmt::runtime( "~main" ) );
-
   SFG::SystemSimulator::Logger::LoggerFactory::deinit();
   return 0;
 }

@@ -14,7 +14,7 @@ namespace Logger {
 
 class LoggerFactory {
   public:
-  static void init( std::string const& logFileName = "log.log" );
+  static void init( std::string const& logFileName = "log.log", bool printOnStdOut = true );
   static void deinit();
 
   static spdlogger get_logger( std::string const& name );

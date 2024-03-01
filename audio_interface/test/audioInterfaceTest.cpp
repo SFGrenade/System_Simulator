@@ -1,10 +1,16 @@
-// #include <database.pb.h>
+#include <SFG/SystemSimulator/Logger/loggerFactory.h>
 #include <string>
+#include <vector>
 
 int main( int argc, char** argv ) {
-  // SFG::SystemSimulator::ProtoMessages::MsgContent myMessage;
-  // myMessage.set_username( "set_username" );
-  // myMessage.set_msgtext( "set_msgtext" );
-  // std::string serialized = myMessage.SerializeAsString();
+  SFG::SystemSimulator::Logger::LoggerFactory::init( "audioInterfaceTest.log", false );
+  std::vector< std::string > args;
+  for( int i = 0; i < argc; i++ ) {
+    args.push_back( std::string( argv[i] ) );
+  }
+  spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
+
+  spdlog::trace( fmt::runtime( "~main" ) );
+  SFG::SystemSimulator::Logger::LoggerFactory::deinit();
   return 0;
 }

@@ -1,9 +1,12 @@
-add_requires( "simpleini" )
+--add_requires( "simpleini" )
 
 target( "Settings-Interface" )
-    add_rules("qt.widgetapp")
+    set_default( false )
+    add_rules("qt.static")
+    --add_rules("qt.shared")
+    --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
-    add_packages( "simpleini" )
+    --add_packages( "simpleini", { public = true } )
 
     add_deps( "Logger" )
     add_deps( "Proto-Messages" )
@@ -14,6 +17,16 @@ target( "Settings-Interface" )
     add_files( "include/SFG/SystemSimulator/SettingsInterface/mainWindow.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
 
     add_files( "src/*.cpp" )
+    remove_files( "src/main.cpp" )
+
+    add_frameworks( "QtCore", "QtGui", "QtWidgets" )
+
+target( "Settings-Interface-Exe" )
+    add_rules("qt.widgetapp")
+
+    add_deps( "Settings-Interface" )
+
+    add_files( "src/main.cpp" )
 
     add_frameworks( "QtCore", "QtGui", "QtWidgets" )
 
@@ -29,9 +42,10 @@ target( "Settings-Interface" )
 for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
-        set_kind( "binary" )
-        add_deps(  "Settings-Interface"  )
         set_default( false )
+        add_rules("qt.widgetapp")
+        add_deps(  "Settings-Interface"  )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
+        add_frameworks( "QtCore", "QtGui", "QtWidgets" )
 end
