@@ -34,9 +34,8 @@ end
 
 add_requireconfs( "*", { configs = { shared = false } } )
 
-includes( "logger" )
-includes( "proto_messages" )
-
 includes( "audio_interface" )
+includes( "logger" )
 includes( "login_server" )
+includes( "proto_messages" )
 includes( "settings_interface" )

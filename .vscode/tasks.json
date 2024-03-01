@@ -4,21 +4,45 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "XMake configure debug (x64)",
+      "label": "Remove Build Logs",
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=debug --kind=shared >_build_logs\\01_configure_debug.txt 2>&1",
+      "command": "rm _build_logs\\*",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake switch theme",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Remove Build Logs"
+      ],
+      "type": "shell",
+      "command": "xmake global --theme=plain >_build_logs\\00_set_theme.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake configure debug (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake switch theme"
+      ],
+      "type": "shell",
+      "command": "xmake config --plat=windows --arch=x64 --mode=debug --kind=shared -vD >_build_logs\\01_configure_debug.txt 2>&1",
       "problemMatcher": []
     },
     {
       "label": "XMake configure release (x64)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake switch theme"
+      ],
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=release --kind=shared >_build_logs\\01_configure_release.txt 2>&1",
+      "command": "xmake config --plat=windows --arch=x64 --mode=release --kind=shared -vD >_build_logs\\01_configure_release.txt 2>&1",
       "problemMatcher": []
     },
     {
       "label": "XMake build",
       "type": "shell",
-      "command": "xmake build -a >_build_logs\\02_build.txt 2>&1",
+      "command": "xmake build -a -vD >_build_logs\\02_build.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -42,7 +66,7 @@
     {
       "label": "XMake test",
       "type": "shell",
-      "command": "xmake test >_build_logs\\05_test.txt 2>&1",
+      "command": "xmake test -vD >_build_logs\\05_test.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -66,7 +90,7 @@
     {
       "label": "XMake package",
       "type": "shell",
-      "command": "xmake package -avo E:\\xmake_packages >_build_logs\\10_package.txt 2>&1",
+      "command": "xmake package -ao -vD E:\\xmake_packages >_build_logs\\10_package.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -81,7 +105,7 @@
     {
       "label": "XMake install",
       "type": "shell",
-      "command": "xmake install -avo E:\\System_Simulator >_build_logs\\20_install.txt 2>&1",
+      "command": "xmake install -ao -vD E:\\System_Simulator >_build_logs\\20_install.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -100,7 +124,7 @@
         "XMake test release (x64)"
       ],
       "type": "shell",
-      "command": "xmake run Config-HMI >_build_logs\\stdout.log 2>_build_logs\\stderr.log",
+      "command": "xmake run -vD Config-HMI >_build_logs\\stdout.log 2>_build_logs\\stderr.log",
       "problemMatcher": []
     }
   ]
