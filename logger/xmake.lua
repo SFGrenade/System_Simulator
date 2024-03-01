@@ -23,7 +23,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     target( name )
         set_default( false )
         set_kind( "binary" )
-        add_deps(  "Logger"  )
+        add_deps(  "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
 end

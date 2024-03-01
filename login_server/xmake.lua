@@ -11,8 +11,8 @@ target( "Login-Server" )
 
     --add_packages( "simpleini", { public = true } )
 
-    add_deps( "Logger" )
-    add_deps( "Proto-Messages" )
+    add_deps( "Logger", { public = true } )
+    add_deps( "Proto-Messages", { public = true } )
 
     add_includedirs( "include", { public = true } )
 
@@ -42,7 +42,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     target( name )
         set_default( false )
         set_kind( "binary" )
-        add_deps(  "Login-Server"  )
+        add_deps(  "Login-Server", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
 end
