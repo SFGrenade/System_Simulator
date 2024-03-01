@@ -27,10 +27,10 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
 
     steps:
-    ###- name: Get current date as package key
-    ###  id: cache_key
-    ###  run: echo "key=$(date +'%W')" >> $GITHUB_OUTPUT
-    ###  shell: bash
+    - name: Get current date as package key
+      id: cache_key
+      run: echo "key=$(date +'%W')" >> $GITHUB_OUTPUT
+      shell: bash
 
     - name: "Set OUTPUT_FILE variable"
       run: echo "OUTPUT_FILE=${{ matrix.platform.os }}_${{ matrix.platform.arch }}_${{ matrix.mode }}${{ matrix.platform.archive_ext }}" >> $GITHUB_ENV
@@ -69,40 +69,40 @@ jobs:
       run: xmake repo --update
 
     # Fetch xmake dephash
-    ###- name: Retrieve dependencies hash
-    ###  id: dep_hash
-    ###  run: echo "hash=$(xmake l utils.ci.packageskey)" >> $GITHUB_OUTPUT
-    ###  shell: bash
+    - name: Retrieve dependencies hash
+      id: dep_hash
+      run: echo "hash=$(xmake l utils.ci.packageskey)" >> $GITHUB_OUTPUT
+      shell: bash
 
     # Retrieve xmake dependencies
-    ###- name: Restore cached xmake dependencies
-    ###  id: restore-depcache
-    ###  uses: actions/cache/restore@v4
-    ###  with:
-    ###    path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
-    ###    key: ${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ matrix.mode }}-${{ steps.dep_hash.outputs.hash }}-W${{ steps.cache_key.outputs.key }}
+    - name: Restore cached xmake dependencies
+      id: restore-depcache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
+        key: ${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ matrix.mode }}-${{ steps.dep_hash.outputs.hash }}-W${{ steps.cache_key.outputs.key }}
 
     - name: Configure xmake and install dependencies
-      run: xmake config --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --yes --policies=package.precompiled:n
+      run: xmake config -vD --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --yes --policies=package.precompiled:n
 
     # Save dependencies
-    ###- name: Save cached xmake dependencies
-    ###  if: ${{ !steps.restore-depcache.outputs.cache-hit }}
-    ###  uses: actions/cache/save@v4
-    ###  with:
-    ###    path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
-    ###    key: ${{ steps.restore-depcache.outputs.cache-primary-key }}
+    - name: Save cached xmake dependencies
+      if: ${{ !steps.restore-depcache.outputs.cache-hit }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
+        key: ${{ steps.restore-depcache.outputs.cache-primary-key }}
 
     - name: Build
-      run: xmake build -a
+      run: xmake build -a -vD
 
     - name: Run tests
-      run: xmake test
+      run: xmake test -vD
 
     - name: Install
       if: ${{ matrix.mode == 'releasedbg' || matrix.mode == 'release' }}
       run: |
-        xmake install -vo dest/
+        xmake install -vDo dest/
         if [ "$RUNNER_OS" == "Linux" ]; then
           mv ./dest/lib/*.so ./dest/bin/ || true
         elif [ "$RUNNER_OS" == "macOS" ]; then
