@@ -1,11 +1,11 @@
-add_requires( "simpleini" )
+add_requires( "inifile-cpp" )
 
 target( "Configuration" )
     set_kind( "static" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
-    add_packages( "simpleini", { public = true } )
+    add_packages( "inifile-cpp", { public = true } )
 
     add_includedirs( "include", { public = true } )
 
@@ -28,6 +28,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     target( name )
         set_kind( "binary" )
         add_deps(  "Configuration", { public = true } )
+        add_deps( "Logger", { public = true } )
         set_default( false )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )

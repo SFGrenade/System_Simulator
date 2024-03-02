@@ -2,10 +2,12 @@
 
 namespace SFG {
 namespace SystemSimulator {
-namespace SettingsInterface {
+namespace Configuration {
 
-Configuration::Configuration() {}
+Configuration::Configuration( std::string const& configFilepath ) : iniFile_() {
+  iniFile_.load( configFilepath.c_str() );
+}
 
-}  // namespace SettingsInterface
+}  // namespace Configuration
 }  // namespace SystemSimulator
 }  // namespace SFG

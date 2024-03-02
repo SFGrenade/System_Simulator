@@ -1,21 +1,27 @@
 #ifndef CONFIGURATION_CONFIGURATION_H_
 #define CONFIGURATION_CONFIGURATION_H_
 
-#include <SimpleIni.h>
+#include <inicpp.h>
+#include <string>
 
 namespace SFG {
 namespace SystemSimulator {
-namespace SettingsInterface {
+namespace Configuration {
 
 class Configuration {
   public:
-  Configuration();
+  Configuration( std::string const& configFilepath );
+
+  template < typename T >
+  T get( std::string const& section, std::string const& key ) {
+    return iniFile_[section][key].as< T >();
+  }
 
   private:
-  CSimpleIniA iniFile_;
+  ini::IniFile iniFile_;
 };
 
-}  // namespace SettingsInterface
+}  // namespace Configuration
 }  // namespace SystemSimulator
 }  // namespace SFG
 
