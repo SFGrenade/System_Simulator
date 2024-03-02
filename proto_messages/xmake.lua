@@ -19,6 +19,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         set_default( false )
         set_kind( "binary" )
         add_deps(  "Proto-Messages", { public = true } )
+        add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
 end

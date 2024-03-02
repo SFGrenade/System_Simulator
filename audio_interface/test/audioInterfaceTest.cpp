@@ -3,7 +3,7 @@
 #include <vector>
 
 int main( int argc, char** argv ) {
-  SFG::SystemSimulator::Logger::LoggerFactory::init( "audioInterfaceTest.log", false );
+  SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/audioInterfaceTest.log", false );
   std::vector< std::string > args;
   for( int i = 0; i < argc; i++ ) {
     args.push_back( std::string( argv[i] ) );

@@ -1,12 +1,8 @@
---add_requires( "simpleini" )
-
 target( "Settings-Interface" )
     set_default( false )
     add_rules("qt.static")
     --add_rules("qt.shared")
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
-
-    --add_packages( "simpleini", { public = true } )
 
     add_deps( "Logger", { public = true } )
     add_deps( "Proto-Messages", { public = true } )
@@ -45,6 +41,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         set_default( false )
         add_rules("qt.widgetapp")
         add_deps(  "Settings-Interface", { public = true } )
+        add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
         add_frameworks( "QtCore", "QtGui", "QtWidgets" )

@@ -1,15 +1,8 @@
---add_requires( "simpleini" )
-
--- because this otherwise uses MT and we have MD
---add_requireconfs( "simpleini", { configs = { shared = true } } )
-
 target( "Login-Server" )
     set_default( false )
     set_kind( "static" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
-
-    --add_packages( "simpleini", { public = true } )
 
     add_deps( "Logger", { public = true } )
     add_deps( "Proto-Messages", { public = true } )
@@ -43,6 +36,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         set_default( false )
         set_kind( "binary" )
         add_deps(  "Login-Server", { public = true } )
+        add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
 end

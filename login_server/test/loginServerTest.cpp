@@ -1,10 +1,9 @@
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
+#include <SFG/SystemSimulator/LoginServer/loginServer.h>
 #include <string>
 #include <thread>
 #include <vector>
 #include <zmqPb/reqRep.hpp>
-
-#include "SFG/SystemSimulator/LoginServer/loginServer.h"
 
 void clientThreadFunc( bool* donePtr ) {
   ZmqPb::ReqRep client( "tcp://localhost:13337", false );
@@ -57,7 +56,7 @@ void serverThreadFunc( bool* donePtr, SFG::SystemSimulator::LoginServer::LoginSe
 }
 
 int main( int argc, char** argv ) {
-  SFG::SystemSimulator::Logger::LoggerFactory::init( "loginServerTest.log", false );
+  SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/loginServerTest.log", false );
   std::vector< std::string > args;
   for( int i = 0; i < argc; i++ ) {
     args.push_back( std::string( argv[i] ) );
