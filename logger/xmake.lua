@@ -1,7 +1,7 @@
 --add_requires( "fmt" )
 add_requires( "spdlog" )
 
-add_requireconfs( "spdlog", { configs = { fmt_external = true } } )
+add_requireconfs( "spdlog", { configs = { fmt_external_ho = true } } )
 
 target( "Logger" )
     set_kind( "static" )
