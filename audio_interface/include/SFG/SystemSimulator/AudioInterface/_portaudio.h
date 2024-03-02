@@ -34,6 +34,8 @@ PaStreamCallbackFlags const outputUnderflow = paOutputUnderflow;
 PaStreamCallbackFlags const outputOverflow = paOutputOverflow;
 PaStreamCallbackFlags const primingOutput = paPrimingOutput;
 
+void unused();
+
 }  // namespace PortAudio
 
 #endif /* AUDIO_INTERFACE_PORTAUDIO_H_ */
