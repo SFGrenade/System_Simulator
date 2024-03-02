@@ -1,4 +1,4 @@
-add_requires( "fmt" )
+--add_requires( "fmt" )
 add_requires( "spdlog" )
 
 add_requireconfs( "spdlog", { configs = { fmt_external = true } } )
@@ -8,7 +8,7 @@ target( "Logger" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
-    add_packages( "fmt", { public = true } )
+    --add_packages( "fmt", { public = true } )
     add_packages( "spdlog", { public = true } )
 
     add_includedirs( "include", { public = true } )
