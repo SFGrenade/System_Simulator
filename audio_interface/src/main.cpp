@@ -1,3 +1,4 @@
+#include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 #include <chrono>
 #include <mutex>
@@ -61,6 +62,8 @@ int main( int argc, char **argv ) {
   }
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
+  SFG::SystemSimulator::Configuration::Configuration config( "config/audio_interface.ini" );
+
   int retCode = 0;
   PortAudio::PaError err;
   spdlog::trace( fmt::runtime( "using {:s}" ), PortAudio::Pa_GetVersionText() );
@@ -84,6 +87,8 @@ int main( int argc, char **argv ) {
     }
 
     PortAudio::PaDeviceIndex numDevices;
+    PortAudio::PaDeviceIndex inputDeviceIndex = PortAudio::Pa_GetDefaultInputDevice();
+    PortAudio::PaDeviceIndex outputDeviceIndex = PortAudio::Pa_GetDefaultOutputDevice();
     if( ( numDevices = PortAudio::Pa_GetDeviceCount() ) < 0 ) {
       spdlog::error( fmt::runtime( "PortAudio Pa_GetDeviceCount error: {:#x}, {:s}" ), numDevices, PortAudio::Pa_GetErrorText( numDevices ) );
     } else {
@@ -99,6 +104,14 @@ int main( int argc, char **argv ) {
         spdlog::info( fmt::runtime( "  - defaultHighInputLatency: {:f}" ), deviceInfo->defaultHighInputLatency );
         spdlog::info( fmt::runtime( "  - defaultHighOutputLatency: {:f}" ), deviceInfo->defaultHighOutputLatency );
         spdlog::info( fmt::runtime( "  - defaultSampleRate: {:f}" ), deviceInfo->defaultSampleRate );
+        if( ( config.get< std::string >( "Input", "DeviceName" ) == deviceInfo->name )
+            && ( config.get< std::string >( "Input", "DeviceApi" ) == PortAudio::Pa_GetHostApiInfo( deviceInfo->hostApi )->name ) ) {
+          inputDeviceIndex = i;
+        }
+        if( ( config.get< std::string >( "Output", "DeviceName" ) == deviceInfo->name )
+            && ( config.get< std::string >( "Output", "DeviceApi" ) == PortAudio::Pa_GetHostApiInfo( deviceInfo->hostApi )->name ) ) {
+          outputDeviceIndex = i;
+        }
       }
     }
 
@@ -106,19 +119,19 @@ int main( int argc, char **argv ) {
     memset( &myData, 0, sizeof( myData ) );
     myData.outputMultiplier = 0.25f;
     myData.portAudioStream = nullptr;
-    myData.inputSettings.device = 15;
-    myData.inputSettings.channelCount = 1;
-    myData.inputSettings.sampleFormat = PortAudio::float32;
+    myData.inputSettings.device = inputDeviceIndex;
+    myData.inputSettings.channelCount = config.get< int >( "Input", "StreamChannels" );
+    myData.inputSettings.sampleFormat = static_cast< PortAudio::PaSampleFormat >( config.get< unsigned long >( "Input", "SampleFormat" ) );
     myData.inputSettings.suggestedLatency = PortAudio::Pa_GetDeviceInfo( myData.inputSettings.device )->defaultLowInputLatency;
     myData.inputSettings.hostApiSpecificStreamInfo = nullptr;
-    myData.outputSettings.device = 12;
-    myData.outputSettings.channelCount = 1;
-    myData.outputSettings.sampleFormat = PortAudio::float32;
+    myData.outputSettings.device = outputDeviceIndex;
+    myData.outputSettings.channelCount = config.get< int >( "Output", "StreamChannels" );
+    myData.outputSettings.sampleFormat = static_cast< PortAudio::PaSampleFormat >( config.get< unsigned long >( "Output", "SampleFormat" ) );
     myData.outputSettings.suggestedLatency = PortAudio::Pa_GetDeviceInfo( myData.outputSettings.device )->defaultLowInputLatency;
     myData.outputSettings.hostApiSpecificStreamInfo = nullptr;
-    myData.sampleRate = 48000;
-    myData.framesPerBuffer = 256;
-    myData.flags = PortAudio::noFlag;
+    myData.sampleRate = config.get< int >( "Input", "SampleRate" );
+    myData.framesPerBuffer = config.get< int >( "Input", "FramesPerBuffer" );
+    myData.flags = static_cast< PortAudio::PaStreamFlags >( config.get< unsigned long >( "Input", "StreamFlags" ) );
 
     if( ( err = PortAudio::Pa_OpenStream( &myData.portAudioStream,
                                           &myData.inputSettings,
@@ -129,7 +142,7 @@ int main( int argc, char **argv ) {
                                           audioMonitoringCallback,
                                           &myData ) )
         != PortAudio::PaErrorCode::paNoError ) {
-      spdlog::error( fmt::runtime( "PortAudio Pa_OpenDefaultStream error: {:#x}, {:s}" ), err, PortAudio::Pa_GetErrorText( err ) );
+      spdlog::error( fmt::runtime( "PortAudio Pa_OpenStream error: {:#x}, {:s}" ), err, PortAudio::Pa_GetErrorText( err ) );
     } else {
       if( ( err = PortAudio::Pa_StartStream( myData.portAudioStream ) ) != PortAudio::PaErrorCode::paNoError ) {
         spdlog::error( fmt::runtime( "PortAudio Pa_StartStream error: {:#x}, {:s}" ), err, PortAudio::Pa_GetErrorText( err ) );

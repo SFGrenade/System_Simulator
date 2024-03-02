@@ -11,6 +11,7 @@ target( "Audio-Interface" )
 
     add_packages( "portaudio", { public = true } )
 
+    add_deps( "Configuration", { public = true } )
     add_deps( "Logger", { public = true } )
     add_deps( "Proto-Messages", { public = true } )
 
