@@ -1,6 +1,7 @@
 #ifndef LOGIN_SERVER_LOGINSERVER_H_
 #define LOGIN_SERVER_LOGINSERVER_H_
 
+#include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 #include <map>
 #include <memory>
@@ -27,6 +28,7 @@ class LoginServer {
 
   private:
   SFG::SystemSimulator::Logger::spdlogger logger_;
+  SFG::SystemSimulator::Configuration::Configuration config_;
   ZmqPb::ReqRep reqRepServer_;
 };
 

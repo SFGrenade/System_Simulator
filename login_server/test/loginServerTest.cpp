@@ -1,3 +1,4 @@
+#include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 #include <SFG/SystemSimulator/LoginServer/loginServer.h>
 #include <string>
@@ -6,7 +7,8 @@
 #include <zmqPb/reqRep.hpp>
 
 void clientThreadFunc( bool* donePtr ) {
-  ZmqPb::ReqRep client( "tcp://localhost:13337", false );
+  SFG::SystemSimulator::Configuration::Configuration config( "config/login_server.ini" );
+  ZmqPb::ReqRep client( config.get< std::string >( "Network", "ServerEndpoint" ), false );
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::LoginResponse(), [&client]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::LoginResponse const& actualRep = static_cast< SFG::SystemSimulator::ProtoMessages::LoginResponse const& >( rep );
     spdlog::debug( fmt::runtime( "rep = {}, '{:s}', '{:s}'" ), actualRep.success(), actualRep.reason_for_fail(), actualRep.session_token() );

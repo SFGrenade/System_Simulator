@@ -4,6 +4,7 @@ target( "Login-Server" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
+    add_deps( "Configuration", { public = true } )
     add_deps( "Logger", { public = true } )
     add_deps( "Proto-Messages", { public = true } )
 

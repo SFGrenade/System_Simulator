@@ -5,7 +5,9 @@ namespace SystemSimulator {
 namespace LoginServer {
 
 LoginServer::LoginServer()
-    : logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "LoginServer" ) ), reqRepServer_( "tcp://localhost:13337", true ) {
+    : logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "LoginServer" ) ),
+      config_( "config/login_server.ini" ),
+      reqRepServer_( config_.get< std::string >( "Network", "ServerEndpoint" ), true ) {
   reqRepServer_.subscribe( new SFG::SystemSimulator::ProtoMessages::LoginRequest(), [this]( google::protobuf::Message const& req ) {
     this->onLogin( static_cast< SFG::SystemSimulator::ProtoMessages::LoginRequest const& >( req ) );
   } );
