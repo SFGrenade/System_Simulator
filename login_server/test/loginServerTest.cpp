@@ -12,7 +12,9 @@ void clientThreadFunc( bool* donePtr ) {
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::LoginResponse(), [&client]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::LoginResponse const& actualRep = static_cast< SFG::SystemSimulator::ProtoMessages::LoginResponse const& >( rep );
     spdlog::debug( fmt::runtime( "rep = {}, '{:s}', '{:s}'" ), actualRep.success(), actualRep.reason_for_fail(), actualRep.session_token() );
-    std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+
+    std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+
     SFG::SystemSimulator::ProtoMessages::CheckSessionRequest* nextReq = new SFG::SystemSimulator::ProtoMessages::CheckSessionRequest();
     nextReq->set_session_token( "00000000" );
     client.sendMessage( nextReq );
@@ -21,7 +23,9 @@ void clientThreadFunc( bool* donePtr ) {
     SFG::SystemSimulator::ProtoMessages::CheckSessionResponse const& actualRep
         = static_cast< SFG::SystemSimulator::ProtoMessages::CheckSessionResponse const& >( rep );
     spdlog::debug( fmt::runtime( "rep = {}, '{:s}'" ), actualRep.success(), actualRep.reason_for_fail() );
-    std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+
+    std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+
     SFG::SystemSimulator::ProtoMessages::LogoutRequest* nextReq = new SFG::SystemSimulator::ProtoMessages::LogoutRequest();
     nextReq->set_session_token( "00000000" );
     client.sendMessage( nextReq );
@@ -29,7 +33,9 @@ void clientThreadFunc( bool* donePtr ) {
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::LogoutResponse(), [&client, donePtr]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::LogoutResponse const& actualRep = static_cast< SFG::SystemSimulator::ProtoMessages::LogoutResponse const& >( rep );
     spdlog::debug( fmt::runtime( "rep = {}, '{:s}'" ), actualRep.success(), actualRep.reason_for_fail() );
-    std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+
+    std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+
     *donePtr = true;
   } );
   {
