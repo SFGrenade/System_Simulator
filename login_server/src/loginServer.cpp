@@ -178,7 +178,7 @@ std::string LoginServer::generateSessionToken() {
   logger_->trace( fmt::runtime( "generateSessionToken" ) );
 
   std::stringstream ret;
-  for( int i = 0; i < 8; i++ ) {
+  for( int i = 0; i < 16; i++ ) {
     int randomIndex = this->randomDistribution_( this->randomGenerator_ );
     ret << this->sessionTokenAlphabet_.at( randomIndex );
   }
