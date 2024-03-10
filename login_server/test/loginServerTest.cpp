@@ -22,7 +22,7 @@ void clientThreadFunc( bool* donePtr ) {
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::CheckSessionResponse(), [&client]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::CheckSessionResponse const& actualRep
         = static_cast< SFG::SystemSimulator::ProtoMessages::CheckSessionResponse const& >( rep );
-    spdlog::debug( fmt::runtime( "rep = {}, '{:s}'" ), actualRep.success(), actualRep.reason_for_fail() );
+    spdlog::debug( fmt::runtime( "rep = {}" ), actualRep.is_valid() );
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
 
@@ -79,6 +79,11 @@ int main( int argc, char** argv ) {
 
   clientThread.join();
   serverThread.join();
+
+  spdlog::debug( fmt::runtime( "printing tokens:" ) );
+  for( int i = 0; i < 8; i++ ) {
+    spdlog::debug( fmt::runtime( "    {}" ), server.generateSessionToken() );
+  }
 
   spdlog::trace( fmt::runtime( "~main" ) );
   SFG::SystemSimulator::Logger::LoggerFactory::deinit();
