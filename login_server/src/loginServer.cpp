@@ -51,14 +51,14 @@ void LoginServer::run() {
 }
 
 SSP::RegisterResponse* LoginServer::onRegister( SSP::RegisterRequest const& req ) {
-  logger_->trace( fmt::runtime( "onRegister" ) );
+  logger_->trace( fmt::runtime( "onRegister( username = '{:s}', password_hash = '{:s}' )" ), req.username(), req.password_hash() );
   SSP::RegisterResponse* rep = new SSP::RegisterResponse();
 
   if( checkUsernameExists( req.username() ) ) {
     rep->set_success( false );
     rep->set_reason_for_fail( "User already exists" );
   } else {
-    if( checkPasswordHashValid( req.password_hash() ) ) {
+    if( !checkPasswordHashValid( req.password_hash() ) ) {
       rep->set_success( false );
       rep->set_reason_for_fail( "Password hash not valid" );
     } else {
@@ -73,7 +73,7 @@ SSP::RegisterResponse* LoginServer::onRegister( SSP::RegisterRequest const& req 
 }
 
 SSP::LoginResponse* LoginServer::onLogin( SSP::LoginRequest const& req ) {
-  logger_->trace( fmt::runtime( "onLogin" ) );
+  logger_->trace( fmt::runtime( "onLogin( username = '{:s}', password_hash = '{:s}' )" ), req.username(), req.password_hash() );
 
   SSP::LoginResponse* rep = new SSP::LoginResponse();
 
@@ -81,11 +81,11 @@ SSP::LoginResponse* LoginServer::onLogin( SSP::LoginRequest const& req ) {
     rep->set_success( false );
     rep->set_reason_for_fail( "User doesn't exists" );
   } else {
-    if( checkPasswordHashValid( req.password_hash() ) ) {
+    if( !checkPasswordHashValid( req.password_hash() ) ) {
       rep->set_success( false );
       rep->set_reason_for_fail( "Password hash not valid" );
     } else {
-      std::string sessionToken = "";  // random session token?
+      std::string sessionToken = this->generateSessionToken();  // random session token?
       this->sessionMap_[this->sessionIdCounter_]
           = Session{ .user_id = this->getUserIdFromUsername( req.username() ),
                      .sessionToken = sessionToken,
@@ -102,7 +102,7 @@ SSP::LoginResponse* LoginServer::onLogin( SSP::LoginRequest const& req ) {
 }
 
 SSP::CheckSessionResponse* LoginServer::onCheckSession( SSP::CheckSessionRequest const& req ) {
-  logger_->trace( fmt::runtime( "onCheckSession" ) );
+  logger_->trace( fmt::runtime( "onCheckSession( session_token = '{:s}' )" ), req.session_token() );
 
   SSP::CheckSessionResponse* rep = new SSP::CheckSessionResponse();
 
@@ -113,7 +113,7 @@ SSP::CheckSessionResponse* LoginServer::onCheckSession( SSP::CheckSessionRequest
 }
 
 SSP::LogoutResponse* LoginServer::onLogout( SSP::LogoutRequest const& req ) {
-  logger_->trace( fmt::runtime( "onLogout" ) );
+  logger_->trace( fmt::runtime( "onLogout( session_token = '{:s}' )" ), req.session_token() );
 
   SSP::LogoutResponse* rep = new SSP::LogoutResponse();
 
@@ -122,7 +122,7 @@ SSP::LogoutResponse* LoginServer::onLogout( SSP::LogoutRequest const& req ) {
 }
 
 SSP::DeleteUserResponse* LoginServer::onDeleteUser( SSP::DeleteUserRequest const& req ) {
-  logger_->trace( fmt::runtime( "onDeleteUser" ) );
+  logger_->trace( fmt::runtime( "onDeleteUser( username = '{:s}', password_hash = '{:s}' )" ), req.username(), req.password_hash() );
 
   SSP::DeleteUserResponse* rep = new SSP::DeleteUserResponse();
 
@@ -131,7 +131,7 @@ SSP::DeleteUserResponse* LoginServer::onDeleteUser( SSP::DeleteUserRequest const
 }
 
 uint64_t LoginServer::getUserIdFromUsername( std::string const& username ) {
-  logger_->trace( fmt::runtime( "getUserIdFromUsername" ) );
+  logger_->trace( fmt::runtime( "getUserIdFromUsername( username = '{:s}' )" ), username );
 
   for( auto const& userStruct : this->userMap_ ) {
     if( userStruct.second.username == username ) {
@@ -145,14 +145,14 @@ uint64_t LoginServer::getUserIdFromUsername( std::string const& username ) {
 }
 
 bool LoginServer::checkUsernameExists( std::string const& username ) {
-  logger_->trace( fmt::runtime( "checkUsernameExists" ) );
+  logger_->trace( fmt::runtime( "checkUsernameExists( username = '{:s}' )" ), username );
 
   logger_->trace( fmt::runtime( "checkUsernameExists~" ) );
   return getUserIdFromUsername( username ) != 0;
 }
 
 bool LoginServer::checkPasswordHashValid( std::string const& passwordHash ) {
-  logger_->trace( fmt::runtime( "checkPasswordHashValid" ) );
+  logger_->trace( fmt::runtime( "checkPasswordHashValid( passwordHash = '{:s}' )" ), passwordHash );
 
   // todo: actually check, once decided which hash to use
 
@@ -161,12 +161,12 @@ bool LoginServer::checkPasswordHashValid( std::string const& passwordHash ) {
 }
 
 bool LoginServer::checkSessionValid( std::string const& sessionToken ) {
-  logger_->trace( fmt::runtime( "checkSessionValid" ) );
+  logger_->trace( fmt::runtime( "checkSessionValid( sessionToken = '{:s}' )" ), sessionToken );
 
   for( auto const& sessionStruct : this->sessionMap_ ) {
     if( sessionStruct.second.sessionToken == sessionToken ) {
       logger_->trace( fmt::runtime( "checkSessionValid~" ) );
-      return sessionStruct.second.expirationTimepoint < std::chrono::system_clock::now();
+      return std::chrono::system_clock::now() < sessionStruct.second.expirationTimepoint;
     }
   }
 
