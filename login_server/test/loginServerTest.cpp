@@ -15,7 +15,7 @@ void clientThreadFunc( bool* donePtr ) {
 
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::RegisterResponse(), [&client]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::RegisterResponse const& actualRep = static_cast< SFG::SystemSimulator::ProtoMessages::RegisterResponse const& >( rep );
-    spdlog::info( fmt::runtime( "rep = {}, '{:s}'" ), actualRep.success(), actualRep.reason_for_fail() );
+    spdlog::info( fmt::runtime( "rep = '{:s}'" ), rep.DebugString() );
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
 
@@ -26,7 +26,7 @@ void clientThreadFunc( bool* donePtr ) {
   } );
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::LoginResponse(), [&client, &sessionToken]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::LoginResponse const& actualRep = static_cast< SFG::SystemSimulator::ProtoMessages::LoginResponse const& >( rep );
-    spdlog::info( fmt::runtime( "rep = {}, '{:s}', '{:s}'" ), actualRep.success(), actualRep.reason_for_fail(), actualRep.session_token() );
+    spdlog::info( fmt::runtime( "rep = '{:s}'" ), rep.DebugString() );
 
     sessionToken = actualRep.session_token();
 
@@ -39,7 +39,7 @@ void clientThreadFunc( bool* donePtr ) {
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::CheckSessionResponse(), [&client, &sessionToken]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::CheckSessionResponse const& actualRep
         = static_cast< SFG::SystemSimulator::ProtoMessages::CheckSessionResponse const& >( rep );
-    spdlog::info( fmt::runtime( "rep = {}" ), actualRep.is_valid() );
+    spdlog::info( fmt::runtime( "rep = '{:s}'" ), rep.DebugString() );
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
 
@@ -49,7 +49,19 @@ void clientThreadFunc( bool* donePtr ) {
   } );
   client.subscribe( new SFG::SystemSimulator::ProtoMessages::LogoutResponse(), [&client, donePtr]( google::protobuf::Message const& rep ) {
     SFG::SystemSimulator::ProtoMessages::LogoutResponse const& actualRep = static_cast< SFG::SystemSimulator::ProtoMessages::LogoutResponse const& >( rep );
-    spdlog::info( fmt::runtime( "rep = {}, '{:s}'" ), actualRep.success(), actualRep.reason_for_fail() );
+    spdlog::info( fmt::runtime( "rep = '{:s}'" ), rep.DebugString() );
+
+    std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+
+    SFG::SystemSimulator::ProtoMessages::DeleteUserRequest* nextReq = new SFG::SystemSimulator::ProtoMessages::DeleteUserRequest();
+    nextReq->set_username( "TestName" );
+    nextReq->set_password_hash( "00000000" );
+    client.sendMessage( nextReq );
+  } );
+  client.subscribe( new SFG::SystemSimulator::ProtoMessages::DeleteUserResponse(), [&client, donePtr]( google::protobuf::Message const& rep ) {
+    SFG::SystemSimulator::ProtoMessages::DeleteUserResponse const& actualRep
+        = static_cast< SFG::SystemSimulator::ProtoMessages::DeleteUserResponse const& >( rep );
+    spdlog::info( fmt::runtime( "rep = '{:s}'" ), rep.DebugString() );
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
 

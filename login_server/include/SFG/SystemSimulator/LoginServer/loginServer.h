@@ -45,6 +45,7 @@ class LoginServer {
   bool checkUsernameExists( std::string const& username );
   bool checkPasswordHashValid( std::string const& passwordHash );
   bool checkSessionValid( std::string const& sessionToken );
+  bool logoutSession( std::string const& sessionToken, bool skipValidCheck );
 
   public:
   std::string generateSessionToken();
