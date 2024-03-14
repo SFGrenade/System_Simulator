@@ -26,7 +26,7 @@
         "XMake switch theme"
       ],
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=debug --kind=shared -vD >_build_logs\\01_configure_debug.txt 2>&1",
+      "command": "xmake config --import=.vscode/xmakeConfig.debug.conf -vD >_build_logs\\01_configure_debug.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -36,7 +36,7 @@
         "XMake switch theme"
       ],
       "type": "shell",
-      "command": "xmake config --plat=windows --arch=x64 --mode=release --kind=shared -vD >_build_logs\\01_configure_release.txt 2>&1",
+      "command": "xmake config --import=.vscode/xmakeConfig.debug.conf -vD >_build_logs\\01_configure_release.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -52,7 +52,11 @@
         "XMake configure debug (x64)",
         "XMake build"
       ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
     },
     {
       "label": "XMake build release (x64)",
@@ -61,7 +65,11 @@
         "XMake configure release (x64)",
         "XMake build"
       ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
     },
     {
       "label": "XMake test",
@@ -76,7 +84,11 @@
         "XMake build debug (x64)",
         "XMake test"
       ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
     },
     {
       "label": "XMake test release (x64)",
@@ -85,7 +97,11 @@
         "XMake build release (x64)",
         "XMake test"
       ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
     },
     {
       "label": "XMake package",
@@ -100,7 +116,11 @@
         "XMake test release (x64)",
         "XMake package"
       ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
     },
     {
       "label": "XMake install",
@@ -115,17 +135,67 @@
         "XMake test release (x64)",
         "XMake install"
       ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
     },
     {
-      "label": "XMake run release (x64)",
+      "label": "XMake run Audio-Interface-Exe",
+      "type": "shell",
+      "command": "xmake run Audio-Interface-Exe",
       "dependsOrder": "sequence",
       "dependsOn": [
         "XMake test release (x64)"
       ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "XMake run Login-Server-Exe",
       "type": "shell",
-      "command": "xmake run -vD Config-HMI >_build_logs\\stdout.log 2>_build_logs\\stderr.log",
-      "problemMatcher": []
+      "command": "xmake run Login-Server-Exe",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake test release (x64)"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "XMake run Settings-Interface-Exe",
+      "type": "shell",
+      "command": "xmake run Settings-Interface-Exe",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "XMake test release (x64)"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "XMake run release (x64)",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "XMake run Audio-Interface-Exe",
+        "XMake run Login-Server-Exe",
+        "XMake run Settings-Interface-Exe"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
     }
   ]
 }
