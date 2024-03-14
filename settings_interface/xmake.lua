@@ -10,8 +10,11 @@ target( "Settings-Interface" )
     add_includedirs( "include", { public = true } )
 
     add_headerfiles( "include/SFG/SystemSimulator/SettingsInterface/*.h" )
+    add_headerfiles( "include/SFG/SystemSimulator/SettingsInterface/models/*.h" )
     add_files( "include/SFG/SystemSimulator/SettingsInterface/mainWindow.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
+    add_files( "include/SFG/SystemSimulator/SettingsInterface/models/*.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
 
+    add_files( "src/models/*.cpp" )
     add_files( "src/*.cpp" )
     remove_files( "src/main.cpp" )
 
