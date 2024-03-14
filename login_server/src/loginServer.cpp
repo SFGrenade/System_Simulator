@@ -7,7 +7,6 @@ namespace LoginServer {
 LoginServer::LoginServer()
     : logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "LoginServer" ) ),
       config_( "config/login_server.ini" ),
-      reqRepServer_( config_.get< std::string >( "Network", "ServerEndpoint" ), true ),
       userMap_(),
       userIdCounter_( 1 ),
       sessionMap_(),
@@ -17,21 +16,6 @@ LoginServer::LoginServer()
   this->logger_->trace( fmt::runtime( "LoginServer" ) );
 
   this->randomDistribution_ = std::uniform_int_distribution< int >( 0, static_cast< int >( this->sessionTokenAlphabet_.length() ) - 1 );
-  this->reqRepServer_.subscribe( new SSP::RegisterRequest(), [this]( google::protobuf::Message const& req ) {
-    this->reqRepServer_.sendMessage( this->onRegister( static_cast< SSP::RegisterRequest const& >( req ) ) );
-  } );
-  this->reqRepServer_.subscribe( new SSP::LoginRequest(), [this]( google::protobuf::Message const& req ) {
-    this->reqRepServer_.sendMessage( this->onLogin( static_cast< SSP::LoginRequest const& >( req ) ) );
-  } );
-  this->reqRepServer_.subscribe( new SSP::CheckSessionRequest(), [this]( google::protobuf::Message const& req ) {
-    this->reqRepServer_.sendMessage( this->onCheckSession( static_cast< SSP::CheckSessionRequest const& >( req ) ) );
-  } );
-  this->reqRepServer_.subscribe( new SSP::LogoutRequest(), [this]( google::protobuf::Message const& req ) {
-    this->reqRepServer_.sendMessage( this->onLogout( static_cast< SSP::LogoutRequest const& >( req ) ) );
-  } );
-  this->reqRepServer_.subscribe( new SSP::DeleteUserRequest(), [this]( google::protobuf::Message const& req ) {
-    this->reqRepServer_.sendMessage( this->onDeleteUser( static_cast< SSP::DeleteUserRequest const& >( req ) ) );
-  } );
 
   this->logger_->trace( fmt::runtime( "LoginServer~" ) );
 }
@@ -42,131 +26,128 @@ LoginServer::~LoginServer() {
   this->logger_->trace( fmt::runtime( "~LoginServer~" ) );
 }
 
-void LoginServer::run() {
-  // this->logger_->trace( fmt::runtime( "run" ) );
+std::pair< bool, std::string > LoginServer::registerUser( std::string const& username, std::string const& passwordHash ) {
+  this->logger_->trace( fmt::runtime( "registerUser( username = '{:s}', passwordHash = '{:s}' )" ), username, passwordHash );
 
-  this->reqRepServer_.run();
+  std::pair< bool, std::string > ret;
 
-  // this->logger_->trace( fmt::runtime( "run~" ) );
-}
-
-SSP::RegisterResponse* LoginServer::onRegister( SSP::RegisterRequest const& req ) {
-  this->logger_->trace( fmt::runtime( "onRegister( req = '{:s}' )" ), req.DebugString() );
-
-  SSP::RegisterResponse* rep = new SSP::RegisterResponse();
-
-  if( this->checkUsernameExists( req.username() ) ) {
-    rep->set_success( false );
-    rep->set_reason_for_fail( "User already exists" );
+  if( this->checkUsernameExists( username ) ) {
+    ret.first = false;
+    ret.second = "User already exists";
   } else {
-    if( !this->checkPasswordHashValid( req.password_hash() ) ) {
-      rep->set_success( false );
-      rep->set_reason_for_fail( "Password hash not valid" );
+    if( !this->checkPasswordHashValid( passwordHash ) ) {
+      ret.first = false;
+      ret.second = "Password hash not valid";
     } else {
-      this->userMap_[this->userIdCounter_] = User{ .username = req.username(), .passwordHash = req.password_hash() };
+      this->userMap_[this->userIdCounter_] = User{ .username = username, .passwordHash = passwordHash };
       this->userIdCounter_++;
-      rep->set_success( true );
+      ret.first = true;
     }
   }
 
-  this->logger_->trace( fmt::runtime( "onRegister~" ) );
-  return rep;
+  this->logger_->trace( fmt::runtime( "registerUser~" ) );
+  return ret;
 }
 
-SSP::LoginResponse* LoginServer::onLogin( SSP::LoginRequest const& req ) {
-  this->logger_->trace( fmt::runtime( "onLogin( req = '{:s}' )" ), req.DebugString() );
+std::pair< bool, std::string > LoginServer::loginUser( std::string const& username, std::string const& passwordHash ) {
+  this->logger_->trace( fmt::runtime( "loginUser( username = '{:s}', passwordHash = '{:s}' )" ), username, passwordHash );
 
-  SSP::LoginResponse* rep = new SSP::LoginResponse();
+  std::pair< bool, std::string > ret;
 
-  if( !this->checkUsernameExists( req.username() ) ) {
-    rep->set_success( false );
-    rep->set_reason_for_fail( "User doesn't exists" );
+  if( !this->checkUsernameExists( username ) ) {
+    ret.first = false;
+    ret.second = "User doesn't exists";
   } else {
-    if( !this->checkPasswordHashValid( req.password_hash() ) ) {
-      rep->set_success( false );
-      rep->set_reason_for_fail( "Password hash not valid" );
+    if( !this->checkPasswordHashValid( passwordHash ) ) {
+      ret.first = false;
+      ret.second = "Password hash not valid";
     } else {
-      std::string sessionToken = this->generateSessionToken();  // random session token?
-      this->sessionMap_[this->sessionIdCounter_]
-          = Session{ .user_id = this->getUserIdFromUsername( req.username() ),
-                     .sessionToken = sessionToken,
-                     .expirationTimepoint
-                     = std::chrono::system_clock::now() + std::chrono::seconds( this->config_.get< uint32_t >( "Database", "SessionTokenValidTime" ) ) };
-      this->sessionIdCounter_++;
-      rep->set_success( true );
-      rep->set_session_token( sessionToken );
-    }
-  }
-
-  this->logger_->trace( fmt::runtime( "onLogin~" ) );
-  return rep;
-}
-
-SSP::CheckSessionResponse* LoginServer::onCheckSession( SSP::CheckSessionRequest const& req ) {
-  this->logger_->trace( fmt::runtime( "onCheckSession( req = '{:s}' )" ), req.DebugString() );
-
-  SSP::CheckSessionResponse* rep = new SSP::CheckSessionResponse();
-
-  if( this->checkSessionValid( req.session_token() ) ) {
-    rep->set_is_valid( true );
-  } else {
-    rep->set_is_valid( false );
-    this->logoutSession( req.session_token(), true );
-  }
-
-  this->logger_->trace( fmt::runtime( "onCheckSession~" ) );
-  return rep;
-}
-
-SSP::LogoutResponse* LoginServer::onLogout( SSP::LogoutRequest const& req ) {
-  this->logger_->trace( fmt::runtime( "onLogout( req = '{:s}' )" ), req.DebugString() );
-
-  SSP::LogoutResponse* rep = new SSP::LogoutResponse();
-
-  if( !this->checkSessionValid( req.session_token() ) ) {
-    rep->set_success( false );
-    rep->set_reason_for_fail( "Session isn't valid" );
-  } else {
-    if( this->logoutSession( req.session_token(), false ) ) {
-      rep->set_success( true );
-    } else {
-      rep->set_success( false );
-      rep->set_reason_for_fail( "Session couldn't be logged out" );
-    }
-  }
-
-  this->logger_->trace( fmt::runtime( "onLogout~" ) );
-  return rep;
-}
-
-SSP::DeleteUserResponse* LoginServer::onDeleteUser( SSP::DeleteUserRequest const& req ) {
-  this->logger_->trace( fmt::runtime( "onDeleteUser( req = '{:s}' )" ), req.DebugString() );
-
-  SSP::DeleteUserResponse* rep = new SSP::DeleteUserResponse();
-
-  if( !this->checkUsernameExists( req.username() ) ) {
-    rep->set_success( false );
-    rep->set_reason_for_fail( "User doesn't exists" );
-  } else {
-    if( !this->checkPasswordHashValid( req.password_hash() ) ) {
-      rep->set_success( false );
-      rep->set_reason_for_fail( "Password hash not valid" );
-    } else {
-      rep->set_success( false );
-      rep->set_reason_for_fail( "Username/Password is wrong" );
       for( auto const& userStruct : this->userMap_ ) {
-        if( userStruct.second.username == req.username() && userStruct.second.passwordHash == req.password_hash() ) {
-          this->userMap_.erase( userStruct.first );
-          rep->set_success( true );
-          rep->set_reason_for_fail( "" );
+        if( userStruct.second.username == username && userStruct.second.passwordHash == passwordHash ) {
+          std::string sessionToken = this->generateSessionToken();  // random session token?
+          this->sessionMap_[this->sessionIdCounter_]
+              = Session{ .user_id = this->getUserIdFromUsername( username ),
+                         .sessionToken = sessionToken,
+                         .expirationTimepoint
+                         = std::chrono::system_clock::now() + std::chrono::seconds( this->config_.get< uint32_t >( "Database", "SessionTokenValidTime" ) ) };
+          this->sessionIdCounter_++;
+          ret.first = true;
+          ret.second = sessionToken;
           break;
         }
       }
     }
   }
 
-  this->logger_->trace( fmt::runtime( "onDeleteUser~" ) );
-  return rep;
+  this->logger_->trace( fmt::runtime( "loginUser~" ) );
+  return ret;
+}
+
+std::pair< bool, std::string > LoginServer::checkUserSession( std::string const& sessionToken ) {
+  this->logger_->trace( fmt::runtime( "checkUserSession( sessionToken = '{:s}' )" ), sessionToken );
+
+  std::pair< bool, std::string > ret;
+
+  if( this->checkSessionValid( sessionToken ) ) {
+    ret.first = true;
+  } else {
+    ret.first = false;
+    this->logoutSession( sessionToken, true );
+  }
+
+  this->logger_->trace( fmt::runtime( "checkUserSession~" ) );
+  return ret;
+}
+
+std::pair< bool, std::string > LoginServer::logoutUserSession( std::string const& sessionToken ) {
+  this->logger_->trace( fmt::runtime( "logoutUserSession( sessionToken = '{:s}' )" ), sessionToken );
+
+  std::pair< bool, std::string > ret;
+
+  if( !this->checkSessionValid( sessionToken ) ) {
+    ret.first = false;
+    ret.second = "Session isn't valid";
+  } else {
+    if( this->logoutSession( sessionToken, false ) ) {
+      ret.first = true;
+    } else {
+      ret.first = false;
+      ret.second = "Session couldn't be logged out";
+    }
+  }
+
+  this->logger_->trace( fmt::runtime( "logoutUserSession~" ) );
+  return ret;
+}
+
+std::pair< bool, std::string > LoginServer::deleteUser( std::string const& username, std::string const& passwordHash ) {
+  this->logger_->trace( fmt::runtime( "deleteUser( username = '{:s}', passwordHash = '{:s}' )" ), username, passwordHash );
+
+  std::pair< bool, std::string > ret;
+
+  if( !this->checkUsernameExists( username ) ) {
+    ret.first = false;
+    ret.second = "User doesn't exists";
+  } else {
+    if( !this->checkPasswordHashValid( passwordHash ) ) {
+      ret.first = false;
+      ret.second = "Password hash not valid";
+    } else {
+      ret.first = false;
+      ret.second = "Username/Password is wrong";
+      for( auto const& userStruct : this->userMap_ ) {
+        if( userStruct.second.username == username && userStruct.second.passwordHash == passwordHash ) {
+          this->userMap_.erase( userStruct.first );
+          ret.first = true;
+          ret.second = "";
+          break;
+        }
+      }
+    }
+  }
+
+  this->logger_->trace( fmt::runtime( "deleteUser~" ) );
+  return ret;
 }
 
 uint64_t LoginServer::getUserIdFromUsername( std::string const& username ) {
@@ -219,17 +200,17 @@ bool LoginServer::logoutSession( std::string const& sessionToken, bool skipValid
   for( auto const& sessionStruct : this->sessionMap_ ) {
     if( sessionStruct.second.sessionToken == sessionToken ) {
       if( !skipValidCheck && ( sessionStruct.second.expirationTimepoint < std::chrono::system_clock::now() ) ) {
-        this->logger_->trace( fmt::runtime( "checkSessionValid~" ) );
+        this->logger_->trace( fmt::runtime( "logoutSession~" ) );
         return false;
       } else if( skipValidCheck || ( std::chrono::system_clock::now() < sessionStruct.second.expirationTimepoint ) ) {
         this->sessionMap_.erase( sessionStruct.first );
-        this->logger_->trace( fmt::runtime( "checkSessionValid~" ) );
+        this->logger_->trace( fmt::runtime( "logoutSession~" ) );
         return true;
       }
     }
   }
 
-  this->logger_->trace( fmt::runtime( "checkSessionValid~" ) );
+  this->logger_->trace( fmt::runtime( "logoutSession~" ) );
   return false;
 }
 

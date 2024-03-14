@@ -31,14 +31,11 @@ class LoginServer {
   LoginServer();
   ~LoginServer();
 
-  void run();
-
-  private:
-  SSP::RegisterResponse* onRegister( SSP::RegisterRequest const& req );
-  SSP::LoginResponse* onLogin( SSP::LoginRequest const& req );
-  SSP::CheckSessionResponse* onCheckSession( SSP::CheckSessionRequest const& req );
-  SSP::LogoutResponse* onLogout( SSP::LogoutRequest const& req );
-  SSP::DeleteUserResponse* onDeleteUser( SSP::DeleteUserRequest const& req );
+  std::pair< bool, std::string > registerUser( std::string const& username, std::string const& passwordHash );
+  std::pair< bool, std::string > loginUser( std::string const& username, std::string const& passwordHash );
+  std::pair< bool, std::string > checkUserSession( std::string const& sessionToken );
+  std::pair< bool, std::string > logoutUserSession( std::string const& sessionToken );
+  std::pair< bool, std::string > deleteUser( std::string const& username, std::string const& passwordHash );
 
   private:
   uint64_t getUserIdFromUsername( std::string const& username );
@@ -53,7 +50,6 @@ class LoginServer {
   private:
   SFG::SystemSimulator::Logger::spdlogger logger_;
   SFG::SystemSimulator::Configuration::Configuration config_;
-  ZmqPb::ReqRep reqRepServer_;
   std::map< uint64_t, User > userMap_;
   uint64_t userIdCounter_;
   std::map< uint64_t, Session > sessionMap_;

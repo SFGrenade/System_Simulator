@@ -13,6 +13,8 @@ int main( int argc, char** argv ) {
   }
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
+  SFG::SystemSimulator::Configuration::Configuration config( "config/login_server.ini" );
+
   std::pair< bool, std::string > tmp;
 
   SFG::SystemSimulator::LoginServer::LoginServer server;
@@ -26,13 +28,11 @@ int main( int argc, char** argv ) {
     throw tmp.second;
   std::string userSessionToken = tmp.second;
 
-  tmp = server.checkUserSession( userSessionToken );
-  if( !tmp.first )
-    throw tmp.second;
+  std::this_thread::sleep_for( std::chrono::seconds( config.get< uint32_t >( "Database", "SessionTokenValidTime" ) + 1 ) );
 
-  tmp = server.logoutUserSession( userSessionToken );
-  if( !tmp.first )
-    throw tmp.second;
+  tmp = server.checkUserSession( userSessionToken );
+  if( tmp.first )
+    throw "Session valid despite fact it shouldn't be.";
 
   tmp = server.deleteUser( "TestUser", "MyPassword" );
   if( !tmp.first )
