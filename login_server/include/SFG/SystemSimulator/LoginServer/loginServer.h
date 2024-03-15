@@ -38,14 +38,17 @@ class LoginServer {
   std::pair< bool, std::string > deleteUser( std::string const& username, std::string const& passwordHash );
 
   private:
+  bool checkUsernameValid( std::string const& username );
   uint64_t getUserIdFromUsername( std::string const& username );
   bool checkUsernameExists( std::string const& username );
   bool checkPasswordHashValid( std::string const& passwordHash );
   bool checkSessionValid( std::string const& sessionToken );
   bool logoutSession( std::string const& sessionToken, bool skipValidCheck );
 
-  public:
   std::string generateSessionToken();
+
+  public:
+  void printDebugInfo();
 
   private:
   SFG::SystemSimulator::Logger::spdlogger logger_;
@@ -55,6 +58,7 @@ class LoginServer {
   std::map< uint64_t, Session > sessionMap_;
   uint64_t sessionIdCounter_;
 
+  uint64_t sessionTokenLength_ = 16;
   std::random_device randomDevice_;
   std::default_random_engine randomGenerator_;
   std::uniform_int_distribution< int > randomDistribution_;

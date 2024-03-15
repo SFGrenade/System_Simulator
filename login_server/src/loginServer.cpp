@@ -31,18 +31,19 @@ std::pair< bool, std::string > LoginServer::registerUser( std::string const& use
 
   std::pair< bool, std::string > ret;
 
-  if( this->checkUsernameExists( username ) ) {
+  if( !this->checkUsernameValid( username ) ) {
+    ret.first = false;
+    ret.second = "Username invalid";
+  } else if( this->checkUsernameExists( username ) ) {
     ret.first = false;
     ret.second = "User already exists";
+  } else if( !this->checkPasswordHashValid( passwordHash ) ) {
+    ret.first = false;
+    ret.second = "Password hash not valid";
   } else {
-    if( !this->checkPasswordHashValid( passwordHash ) ) {
-      ret.first = false;
-      ret.second = "Password hash not valid";
-    } else {
-      this->userMap_[this->userIdCounter_] = User{ .username = username, .passwordHash = passwordHash };
-      this->userIdCounter_++;
-      ret.first = true;
-    }
+    this->userMap_[this->userIdCounter_] = User{ .username = username, .passwordHash = passwordHash };
+    this->userIdCounter_++;
+    ret.first = true;
   }
 
   this->logger_->trace( fmt::runtime( "registerUser~" ) );
@@ -54,27 +55,28 @@ std::pair< bool, std::string > LoginServer::loginUser( std::string const& userna
 
   std::pair< bool, std::string > ret;
 
-  if( !this->checkUsernameExists( username ) ) {
+  if( !this->checkUsernameValid( username ) ) {
+    ret.first = false;
+    ret.second = "Username invalid";
+  } else if( !this->checkUsernameExists( username ) ) {
     ret.first = false;
     ret.second = "User doesn't exists";
+  } else if( !this->checkPasswordHashValid( passwordHash ) ) {
+    ret.first = false;
+    ret.second = "Password hash not valid";
   } else {
-    if( !this->checkPasswordHashValid( passwordHash ) ) {
-      ret.first = false;
-      ret.second = "Password hash not valid";
-    } else {
-      for( auto const& userStruct : this->userMap_ ) {
-        if( userStruct.second.username == username && userStruct.second.passwordHash == passwordHash ) {
-          std::string sessionToken = this->generateSessionToken();  // random session token?
-          this->sessionMap_[this->sessionIdCounter_]
-              = Session{ .user_id = this->getUserIdFromUsername( username ),
-                         .sessionToken = sessionToken,
-                         .expirationTimepoint
-                         = std::chrono::system_clock::now() + std::chrono::seconds( this->config_.get< uint32_t >( "Database", "SessionTokenValidTime" ) ) };
-          this->sessionIdCounter_++;
-          ret.first = true;
-          ret.second = sessionToken;
-          break;
-        }
+    for( auto const& userStruct : this->userMap_ ) {
+      if( userStruct.second.username == username && userStruct.second.passwordHash == passwordHash ) {
+        std::string sessionToken = this->generateSessionToken();  // random session token?
+        this->sessionMap_[this->sessionIdCounter_]
+            = Session{ .user_id = this->getUserIdFromUsername( username ),
+                       .sessionToken = sessionToken,
+                       .expirationTimepoint
+                       = std::chrono::system_clock::now() + std::chrono::seconds( this->config_.get< uint32_t >( "Database", "SessionTokenValidTime" ) ) };
+        this->sessionIdCounter_++;
+        ret.first = true;
+        ret.second = sessionToken;
+        break;
       }
     }
   }
@@ -107,13 +109,11 @@ std::pair< bool, std::string > LoginServer::logoutUserSession( std::string const
   if( !this->checkSessionValid( sessionToken ) ) {
     ret.first = false;
     ret.second = "Session isn't valid";
+  } else if( this->logoutSession( sessionToken, false ) ) {
+    ret.first = true;
   } else {
-    if( this->logoutSession( sessionToken, false ) ) {
-      ret.first = true;
-    } else {
-      ret.first = false;
-      ret.second = "Session couldn't be logged out";
-    }
+    ret.first = false;
+    ret.second = "Session couldn't be logged out";
   }
 
   this->logger_->trace( fmt::runtime( "logoutUserSession~" ) );
@@ -125,29 +125,39 @@ std::pair< bool, std::string > LoginServer::deleteUser( std::string const& usern
 
   std::pair< bool, std::string > ret;
 
-  if( !this->checkUsernameExists( username ) ) {
+  if( !this->checkUsernameValid( username ) ) {
+    ret.first = false;
+    ret.second = "Username invalid";
+  } else if( !this->checkUsernameExists( username ) ) {
     ret.first = false;
     ret.second = "User doesn't exists";
+  } else if( !this->checkPasswordHashValid( passwordHash ) ) {
+    ret.first = false;
+    ret.second = "Password hash not valid";
   } else {
-    if( !this->checkPasswordHashValid( passwordHash ) ) {
-      ret.first = false;
-      ret.second = "Password hash not valid";
-    } else {
-      ret.first = false;
-      ret.second = "Username/Password is wrong";
-      for( auto const& userStruct : this->userMap_ ) {
-        if( userStruct.second.username == username && userStruct.second.passwordHash == passwordHash ) {
-          this->userMap_.erase( userStruct.first );
-          ret.first = true;
-          ret.second = "";
-          break;
-        }
+    ret.first = false;
+    ret.second = "Username/Password is wrong";
+    for( auto const& userStruct : this->userMap_ ) {
+      if( userStruct.second.username == username && userStruct.second.passwordHash == passwordHash ) {
+        this->userMap_.erase( userStruct.first );
+        ret.first = true;
+        ret.second = "";
+        break;
       }
     }
   }
 
   this->logger_->trace( fmt::runtime( "deleteUser~" ) );
   return ret;
+}
+
+bool LoginServer::checkUsernameValid( std::string const& username ) {
+  this->logger_->trace( fmt::runtime( "checkUsernameValid( username = '{:s}' )" ), username );
+
+  this->logger_->trace( fmt::runtime( "checkUsernameValid - size: {:d}, length: {:d}" ), username.size(), username.length() );
+
+  this->logger_->trace( fmt::runtime( "checkUsernameValid~" ) );
+  return username.length() <= 128;
 }
 
 uint64_t LoginServer::getUserIdFromUsername( std::string const& username ) {
@@ -174,14 +184,22 @@ bool LoginServer::checkUsernameExists( std::string const& username ) {
 bool LoginServer::checkPasswordHashValid( std::string const& passwordHash ) {
   this->logger_->trace( fmt::runtime( "checkPasswordHashValid( passwordHash = '{:s}' )" ), passwordHash );
 
+  this->logger_->trace( fmt::runtime( "checkPasswordHashValid - size: {:d}, length: {:d}" ), passwordHash.size(), passwordHash.length() );
+
   // todo: actually check, once decided which hash to use
 
   this->logger_->trace( fmt::runtime( "checkPasswordHashValid~" ) );
-  return true;
+  return passwordHash.length() <= 128;
 }
 
 bool LoginServer::checkSessionValid( std::string const& sessionToken ) {
   this->logger_->trace( fmt::runtime( "checkSessionValid( sessionToken = '{:s}' )" ), sessionToken );
+
+  this->logger_->trace( fmt::runtime( "checkSessionValid - size: {:d}, length: {:d}" ), sessionToken.size(), sessionToken.length() );
+
+  if( sessionToken.length() != this->sessionTokenLength_ ) {
+    return false;
+  }
 
   for( auto const& sessionStruct : this->sessionMap_ ) {
     if( sessionStruct.second.sessionToken == sessionToken ) {
@@ -218,13 +236,33 @@ std::string LoginServer::generateSessionToken() {
   this->logger_->trace( fmt::runtime( "generateSessionToken" ) );
 
   std::stringstream ret;
-  for( int i = 0; i < 16; i++ ) {
+  for( int i = 0; i < this->sessionTokenLength_; i++ ) {
     int randomIndex = this->randomDistribution_( this->randomGenerator_ );
     ret << this->sessionTokenAlphabet_.at( randomIndex );
   }
 
   this->logger_->trace( fmt::runtime( "generateSessionToken~" ) );
   return ret.str();
+}
+
+void LoginServer::printDebugInfo() {
+  this->logger_->trace( fmt::runtime( "printDebugInfo" ) );
+
+  this->logger_->info( fmt::runtime( "Users:" ) );
+  for( auto const& pair : this->userMap_ ) {
+    this->logger_->info( fmt::runtime( "- {:d}: '{:s}', '{:s}'" ), pair.first, pair.second.username, pair.second.passwordHash );
+  }
+
+  this->logger_->info( fmt::runtime( "Sessions:" ) );
+  for( auto const& pair : this->sessionMap_ ) {
+    this->logger_->info( fmt::runtime( "- {:d}: {:d}, '{:s}', '{:%Y-%m-%dT%H:%M:%S%Ez}'" ),
+                         pair.first,
+                         pair.second.user_id,
+                         pair.second.sessionToken,
+                         pair.second.expirationTimepoint );
+  }
+
+  this->logger_->trace( fmt::runtime( "printDebugInfo~" ) );
 }
 
 }  // namespace LoginServer

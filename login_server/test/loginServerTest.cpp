@@ -18,25 +18,40 @@ int main( int argc, char** argv ) {
   SFG::SystemSimulator::LoginServer::LoginServer server;
 
   tmp = server.registerUser( "TestUser", "MyPassword" );
+  spdlog::debug( fmt::runtime( "tmp = {}, '{:s}'" ), tmp.first, tmp.second );
   if( !tmp.first )
     throw tmp.second;
 
+  server.printDebugInfo();
+
   tmp = server.loginUser( "TestUser", "MyPassword" );
+  spdlog::debug( fmt::runtime( "tmp = {}, '{:s}'" ), tmp.first, tmp.second );
   if( !tmp.first )
     throw tmp.second;
   std::string userSessionToken = tmp.second;
 
+  server.printDebugInfo();
+
   tmp = server.checkUserSession( userSessionToken );
+  spdlog::debug( fmt::runtime( "tmp = {}, '{:s}'" ), tmp.first, tmp.second );
   if( !tmp.first )
     throw tmp.second;
+
+  server.printDebugInfo();
 
   tmp = server.logoutUserSession( userSessionToken );
+  spdlog::debug( fmt::runtime( "tmp = {}, '{:s}'" ), tmp.first, tmp.second );
   if( !tmp.first )
     throw tmp.second;
 
+  server.printDebugInfo();
+
   tmp = server.deleteUser( "TestUser", "MyPassword" );
+  spdlog::debug( fmt::runtime( "tmp = {}, '{:s}'" ), tmp.first, tmp.second );
   if( !tmp.first )
     throw tmp.second;
+
+  server.printDebugInfo();
 
   spdlog::trace( fmt::runtime( "~main" ) );
   SFG::SystemSimulator::Logger::LoggerFactory::deinit();

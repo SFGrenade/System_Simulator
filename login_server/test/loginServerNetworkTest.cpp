@@ -112,6 +112,8 @@ int main( int argc, char** argv ) {
     ret->set_success( tmp.first );
     ret->set_reason_for_fail( tmp.second );
     netConnector->sendMessage( ret );
+
+    loginServer.printDebugInfo();
   } );
   netConnector->subscribe( new SSP::LoginRequest(), [&]( google::protobuf::Message const& req ) {
     auto tmp
@@ -123,12 +125,16 @@ int main( int argc, char** argv ) {
     else
       ret->set_reason_for_fail( tmp.second );
     netConnector->sendMessage( ret );
+
+    loginServer.printDebugInfo();
   } );
   netConnector->subscribe( new SSP::CheckSessionRequest(), [&]( google::protobuf::Message const& req ) {
     auto tmp = loginServer.checkUserSession( dynamic_cast< SSP::CheckSessionRequest const& >( req ).session_token() );
     auto ret = new SSP::CheckSessionResponse();
     ret->set_is_valid( tmp.first );
     netConnector->sendMessage( ret );
+
+    loginServer.printDebugInfo();
   } );
   netConnector->subscribe( new SSP::LogoutRequest(), [&]( google::protobuf::Message const& req ) {
     auto tmp = loginServer.logoutUserSession( dynamic_cast< SSP::LogoutRequest const& >( req ).session_token() );
@@ -136,6 +142,8 @@ int main( int argc, char** argv ) {
     ret->set_success( tmp.first );
     ret->set_reason_for_fail( tmp.second );
     netConnector->sendMessage( ret );
+
+    loginServer.printDebugInfo();
   } );
   netConnector->subscribe( new SSP::DeleteUserRequest(), [&]( google::protobuf::Message const& req ) {
     auto tmp = loginServer.deleteUser( dynamic_cast< SSP::DeleteUserRequest const& >( req ).username(),
@@ -144,6 +152,8 @@ int main( int argc, char** argv ) {
     ret->set_success( tmp.first );
     ret->set_reason_for_fail( tmp.second );
     netConnector->sendMessage( ret );
+
+    loginServer.printDebugInfo();
   } );
 
   std::thread serverThread( serverThreadFunc, &done, &loginServer, &netConnector );
