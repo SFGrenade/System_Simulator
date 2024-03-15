@@ -36,7 +36,7 @@
         "XMake switch theme"
       ],
       "type": "shell",
-      "command": "xmake config --import=.vscode/xmakeConfig.debug.conf -vD >_build_logs\\01_configure_release.txt 2>&1",
+      "command": "xmake config --import=.vscode/xmakeConfig.release.conf -vD >_build_logs\\01_configure_release.txt 2>&1",
       "problemMatcher": []
     },
     {
