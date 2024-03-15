@@ -94,7 +94,7 @@ void serverThreadFunc( bool* donePtr, SFG::SystemSimulator::LoginServer::LoginSe
 }
 
 int main( int argc, char** argv ) {
-  SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/loginServerTest.log", false );
+  SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/loginServerNetworkTest.log", false );
   std::vector< std::string > args;
   for( int i = 0; i < argc; i++ ) {
     args.push_back( std::string( argv[i] ) );
