@@ -16,7 +16,7 @@ if is_plat( "windows" ) then
 
     -- MDd somehow breaks installation of packages lol
     --set_runtimes(is_mode("debug") and "MDd" or "MD")
-    set_runtimes(is_mode("debug") and "MDd" or "MD")
+    set_runtimes(is_mode("debug") and "MD" or "MD")
 else
     set_languages( "cxx20" )
 end
