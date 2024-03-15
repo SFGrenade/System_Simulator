@@ -7,13 +7,11 @@
 #include <map>
 #include <random>
 #include <string>
-#include <users.pb.h>
 #include <zmqPb/reqRep.hpp>
 
 namespace SFG {
 namespace SystemSimulator {
 namespace LoginServer {
-namespace SSP = SFG::SystemSimulator::ProtoMessages;
 
 struct User {
   std::string username;

@@ -3,17 +3,11 @@
 
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-#include <chrono>
-#include <map>
-#include <random>
-#include <string>
-#include <users.pb.h>
 #include <zmqPb/reqRep.hpp>
 
 namespace SFG {
 namespace SystemSimulator {
 namespace LoginServer {
-namespace SSP = SFG::SystemSimulator::ProtoMessages;
 
 class NetConnector {
   public:

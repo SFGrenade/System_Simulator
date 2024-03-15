@@ -4,6 +4,7 @@
 #include <SFG/SystemSimulator/LoginServer/netConnector.h>
 #include <string>
 #include <thread>
+#include <users.pb.h>
 #include <vector>
 #include <zmqPb/reqRep.hpp>
 

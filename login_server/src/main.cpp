@@ -1,5 +1,6 @@
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 #include <string>
+#include <users.pb.h>
 #include <vector>
 
 #include "SFG/SystemSimulator/LoginServer/loginServer.h"
