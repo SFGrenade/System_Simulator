@@ -19,7 +19,7 @@ int main( int argc, char** argv ) {
 
   SFG::SystemSimulator::LoginServer::LoginServer server;
 
-  for( int i = 1; i <= 10000; i++ ) {
+  for( int i = 1; i <= 200; i++ ) {
     spdlog::info( fmt::runtime( "Loop {:d}" ), i );
 
     usernameStream << "A";
