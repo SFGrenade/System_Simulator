@@ -1,5 +1,6 @@
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
+#include <audio.pb.h>
 #include <chrono>
 #include <mutex>
 #include <queue>
@@ -8,6 +9,9 @@
 #include <vector>
 
 #include "SFG/SystemSimulator/AudioInterface/_portaudio.h"
+#include "SFG/SystemSimulator/AudioInterface/netConnector.h"
+
+namespace SSP = SFG::SystemSimulator::ProtoMessages;
 
 struct MySettingsStruct {
   float outputMultiplier;
@@ -18,6 +22,7 @@ struct MySettingsStruct {
   double sampleRate;
   unsigned long framesPerBuffer;
   PortAudio::PaStreamFlags flags;
+  SFG::SystemSimulator::AudioInterface::NetConnector *netConnector;
 };
 
 int audioMonitoringCallback( const void *inputBuffer,
@@ -27,8 +32,8 @@ int audioMonitoringCallback( const void *inputBuffer,
                              PortAudio::PaStreamCallbackFlags statusFlags,
                              void *userData ) {
   MySettingsStruct *data = (MySettingsStruct *)userData;
-  float *in = (float *)inputBuffer;
-  float *out = (float *)outputBuffer;
+  int16_t *in = (int16_t *)inputBuffer;
+  int16_t *out = (int16_t *)outputBuffer;
   unsigned int i;
 
   if( ( statusFlags & PortAudio::inputUnderflow ) == PortAudio::inputUnderflow ) {
@@ -47,9 +52,16 @@ int audioMonitoringCallback( const void *inputBuffer,
     spdlog::warn( fmt::runtime( "PortAudioStream - output priming" ) );
   }
 
+  char *audioData = new char[framesPerBuffer * 2];
+  SSP::AudioFrame *rep = new SSP::AudioFrame();
   for( i = 0; i < framesPerBuffer; i++ ) {
+    audioData[( 2 * i ) + 0] = ( ( *in ) >> 0 ) & 0xFF;
+    audioData[( 2 * i ) + 1] = ( ( *in ) >> 8 ) & 0xFF;
     *out++ = *in++;
   }
+  rep->set_audio_generator_id( "AudioInterface" );
+  rep->set_audio_data( std::string( reinterpret_cast< char * >( audioData ), framesPerBuffer * 2 ) );
+  ( *data->netConnector )->sendMessage( rep );
 
   return PortAudio::PaStreamCallbackResult::paContinue;
 }
@@ -63,6 +75,18 @@ int main( int argc, char **argv ) {
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
   SFG::SystemSimulator::Configuration::Configuration config( "config/audio_interface.ini" );
+  SFG::SystemSimulator::AudioInterface::NetConnector netConnector;
+
+  bool done = false;
+
+  std::thread networkThread(
+      []( SFG::SystemSimulator::AudioInterface::NetConnector *netConnectorPtr, bool *donePtr ) {
+        while( !( *donePtr ) ) {
+          ( *netConnectorPtr )->run();
+        }
+      },
+      &netConnector,
+      &done );
 
   int retCode = 0;
   PortAudio::PaError err;
@@ -132,6 +156,36 @@ int main( int argc, char **argv ) {
     myData.sampleRate = config.get< int >( "Input", "SampleRate" );
     myData.framesPerBuffer = config.get< int >( "Input", "FramesPerBuffer" );
     myData.flags = static_cast< PortAudio::PaStreamFlags >( config.get< unsigned long >( "Input", "StreamFlags" ) );
+    myData.netConnector = &netConnector;
+
+    SSP::AudioFormatInformation *rep = new SSP::AudioFormatInformation();
+    rep->set_audio_generator_id( "AudioInterface" );
+    rep->set_type( SSP::AudioFormatType::PCM );
+    rep->set_channels( myData.inputSettings.channelCount );
+    rep->set_sample_rate( myData.sampleRate );
+    switch( myData.inputSettings.sampleFormat ) {
+      case 0x00000001:
+        rep->set_bits_per_sample( 32 );
+        break;
+      case 0x00000002:
+        rep->set_bits_per_sample( 32 );
+        break;
+      case 0x00000004:
+        rep->set_bits_per_sample( 24 );
+        break;
+      case 0x00000008:
+        rep->set_bits_per_sample( 16 );
+        break;
+      case 0x00000010:
+        rep->set_bits_per_sample( 8 );
+        break;
+      case 0x00000020:
+        rep->set_bits_per_sample( 8 );
+        break;
+      default:
+        break;
+    }
+    netConnector->sendMessage( rep );
 
     if( ( err = PortAudio::Pa_OpenStream( &myData.portAudioStream,
                                           &myData.inputSettings,
@@ -160,6 +214,14 @@ int main( int argc, char **argv ) {
       spdlog::error( fmt::runtime( "PortAudio Pa_Terminate error: {:#x}, {:s}" ), err, PortAudio::Pa_GetErrorText( err ) );
     }
   }
+
+  SSP::DoneStreamingAudio *doneStreamingRep = new SSP::DoneStreamingAudio();
+  doneStreamingRep->set_audio_generator_id( "AudioInterface" );
+  netConnector->sendMessage( doneStreamingRep );
+
+  std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+  done = true;
+  networkThread.join();
 
   spdlog::trace( fmt::runtime( "~main" ) );
   SFG::SystemSimulator::Logger::LoggerFactory::deinit();

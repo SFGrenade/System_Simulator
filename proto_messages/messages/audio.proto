@@ -18,3 +18,7 @@ message AudioFrame {
   string audio_generator_id = 1;
   bytes audio_data = 2;
 }
+
+message DoneStreamingAudio {
+  string audio_generator_id = 1;
+}

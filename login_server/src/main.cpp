@@ -19,6 +19,7 @@ int main( int argc, char** argv ) {
   int retCode = 0;
   SFG::SystemSimulator::LoginServer::LoginServer loginServer;
   SFG::SystemSimulator::LoginServer::NetConnector netConnector;
+
   netConnector->subscribe( new SSP::RegisterRequest(), [&]( google::protobuf::Message const& req ) {
     auto tmp = loginServer.registerUser( dynamic_cast< SSP::RegisterRequest const& >( req ).username(),
                                          dynamic_cast< SSP::RegisterRequest const& >( req ).password_hash() );
@@ -59,6 +60,7 @@ int main( int argc, char** argv ) {
     ret->set_reason_for_fail( tmp.second );
     netConnector->sendMessage( ret );
   } );
+
   while( 1 ) {
     try {
       netConnector->run();

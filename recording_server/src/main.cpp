@@ -41,13 +41,26 @@ int main( int argc, char** argv ) {
   netConnector->subscribe( new SSP::AudioFrame(), [&]( google::protobuf::Message const& req ) {
     SSP::AudioFrame const& actualReq = dynamic_cast< SSP::AudioFrame const& >( req );
 
-    std::list< uint8_t > actualData;
+    std::list< char > actualData;
     for( char byte : actualReq.audio_data() ) {
       actualData.push_back( byte );
     }
 
     recordingServer.streamAudioFrame( actualReq.audio_generator_id(), actualData );
   } );
+  netConnector->subscribe( new SSP::DoneStreamingAudio(), [&]( google::protobuf::Message const& req ) {
+    SSP::DoneStreamingAudio const& actualReq = dynamic_cast< SSP::DoneStreamingAudio const& >( req );
+
+    recordingServer.saveAudioGenerator( actualReq.audio_generator_id() );
+  } );
+
+  while( 1 ) {
+    try {
+      netConnector->run();
+    } catch( std::exception const& e ) {
+      spdlog::error( fmt::runtime( "error calling netConnector.run: {:s}" ), e.what() );
+    }
+  }
 
   spdlog::trace( fmt::runtime( "~main" ) );
   SFG::SystemSimulator::Logger::LoggerFactory::deinit();

@@ -1,5 +1,7 @@
 #include "SFG/SystemSimulator/RecordingServer/recordingServer.h"
 
+#include <cerrno>
+
 namespace SFG {
 namespace SystemSimulator {
 namespace RecordingServer {
@@ -32,19 +34,16 @@ void RecordingServer::setupAudioGenerator( std::string const& generatorId,
   if( this->audioMap_.contains( generatorId ) ) {
     this->logger_->error( fmt::runtime( "setupAudioGenerator - Generator '{:s}' already existing" ), generatorId );
   } else {
-    this->audioMap_[generatorId] = AudioInformation{ .type = format,
-                                                     .channels = channels,
-                                                     .sampleRate = sampleRate,
-                                                     .bitsPerSample = bitsPerSample,
-                                                     .audioData = std::list< uint8_t >() };
+    this->audioMap_[generatorId]
+        = AudioInformation{ .type = format, .channels = channels, .sampleRate = sampleRate, .bitsPerSample = bitsPerSample, .audioData = std::list< char >() };
   }
 
   this->logger_->trace( fmt::runtime( "setupAudioGenerator~" ) );
 }
 
-void RecordingServer::streamAudioFrame( std::string const& generatorId, std::list< uint8_t > data ) {
+void RecordingServer::streamAudioFrame( std::string const& generatorId, std::list< char > data ) {
   std::stringstream audioDataStream;
-  for( uint8_t byte : data ) {
+  for( char byte : data ) {
     audioDataStream << std::to_string( byte ) << ", ";
   }
   this->logger_->trace( fmt::runtime( "streamAudioFrame( generatorId = '{:s}', data = [{:s}], ({:d} bytes) )" ),
@@ -55,7 +54,7 @@ void RecordingServer::streamAudioFrame( std::string const& generatorId, std::lis
   if( !this->audioMap_.contains( generatorId ) ) {
     this->logger_->error( fmt::runtime( "streamAudioFrame - Generator '{:s}' doesn't exist" ), generatorId );
   } else {
-    for( uint8_t byte : data ) {
+    for( char byte : data ) {
       this->audioMap_[generatorId].audioData.push_back( byte );
     }
   }
@@ -63,36 +62,11 @@ void RecordingServer::streamAudioFrame( std::string const& generatorId, std::lis
   this->logger_->trace( fmt::runtime( "streamAudioFrame~" ) );
 }
 
-std::list< uint8_t > int16ToLittleBytes( int16_t val ) {
-  std::list< uint8_t > ret;
-  ret.push_back( val & 0xFF );
-  ret.push_back( ( val >> 8 ) & 0xFF );
-  return ret;
-}
-
-std::list< uint8_t > uint16ToLittleBytes( uint16_t val ) {
-  std::list< uint8_t > ret;
-  ret.push_back( val & 0xFF );
-  ret.push_back( ( val >> 8 ) & 0xFF );
-  return ret;
-}
-
-std::list< uint8_t > int32ToLittleBytes( int32_t val ) {
-  std::list< uint8_t > ret;
-  ret.push_back( val & 0xFF );
-  ret.push_back( ( val >> 8 ) & 0xFF );
-  ret.push_back( ( val >> 16 ) & 0xFF );
-  ret.push_back( ( val >> 32 ) & 0xFF );
-  return ret;
-}
-
-std::list< uint8_t > uint32ToLittleBytes( uint32_t val ) {
-  std::list< uint8_t > ret;
-  ret.push_back( val & 0xFF );
-  ret.push_back( ( val >> 8 ) & 0xFF );
-  ret.push_back( ( val >> 16 ) & 0xFF );
-  ret.push_back( ( val >> 32 ) & 0xFF );
-  return ret;
+template < typename T >
+void writeLittleEndian( T value, FILE* file ) {
+  for( int i = 0; i < sizeof( T ); i++ ) {
+    fputc( static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF ), file );
+  }
 }
 
 void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
@@ -102,7 +76,7 @@ void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
     this->logger_->error( fmt::runtime( "saveAudioGenerator - Generator '{:s}' doesn't exist" ), generatorId );
   } else {
     auto audioStructData = this->audioMap_[generatorId];
-    FILE* wavFile = fopen( fmt::format( fmt::runtime( "{:s}.wav" ), generatorId ).c_str(), "wb" );
+    FILE* wavFile = fopen( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ).c_str(), "wb" );
     if( !wavFile ) {
       this->logger_->error( fmt::runtime( "saveAudioGenerator - Generator '{:s}' couldn't be saved!" ), generatorId );
     } else {
@@ -115,42 +89,29 @@ void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
       uint16_t blockAlign = ( audioStructData.channels ) * ( audioStructData.bitsPerSample / 8 );
 
       fputs( "RIFF", wavFile );
-      for( uint8_t byte : uint32ToLittleBytes( entireFileSize ) ) {
-        fputc( byte, wavFile );
-      }
+      writeLittleEndian< uint32_t >( entireFileSize, wavFile );
       fputs( "WAVE", wavFile );
       fputs( "fmt ", wavFile );
-      for( uint8_t byte : uint32ToLittleBytes( fmtBlockSize ) ) {
-        fputc( byte, wavFile );
-      }
-      for( uint8_t byte : uint16ToLittleBytes( static_cast< uint16_t >( audioStructData.type ) ) ) {
-        fputc( byte, wavFile );
-      }
-      for( uint8_t byte : uint16ToLittleBytes( audioStructData.channels ) ) {
-        fputc( byte, wavFile );
-      }
-      for( uint8_t byte : uint32ToLittleBytes( audioStructData.sampleRate ) ) {
-        fputc( byte, wavFile );
-      }
-      for( uint8_t byte : uint32ToLittleBytes( byteRate ) ) {
-        fputc( byte, wavFile );
-      }
-      for( uint8_t byte : uint16ToLittleBytes( blockAlign ) ) {
-        fputc( byte, wavFile );
-      }
-      for( uint8_t byte : uint16ToLittleBytes( audioStructData.bitsPerSample ) ) {
-        fputc( byte, wavFile );
-      }
+      writeLittleEndian< uint32_t >( fmtBlockSize, wavFile );
+      writeLittleEndian< uint16_t >( static_cast< uint16_t >( audioStructData.type ), wavFile );
+      writeLittleEndian< uint16_t >( audioStructData.channels, wavFile );
+      writeLittleEndian< uint32_t >( audioStructData.sampleRate, wavFile );
+      writeLittleEndian< uint32_t >( byteRate, wavFile );
+      writeLittleEndian< uint16_t >( blockAlign, wavFile );
+      writeLittleEndian< uint16_t >( audioStructData.bitsPerSample, wavFile );
       fputs( "data", wavFile );
-      for( uint8_t byte : uint32ToLittleBytes( dataBlockSize ) ) {
-        fputc( byte, wavFile );
-      }
-      for( uint8_t byte : audioStructData.audioData ) {
+      writeLittleEndian< uint32_t >( dataBlockSize, wavFile );
+      for( char byte : audioStructData.audioData ) {
         fputc( byte, wavFile );
       }
 
+      std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+
+      if( !fflush( wavFile ) ) {
+        this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be flushed! errno: {:d}" ), generatorId, errno );
+      }
       if( !fclose( wavFile ) ) {
-        this->logger_->error( fmt::runtime( "saveAudioGenerator - file '{:s}.wav' couldn't be closed!" ), generatorId );
+        this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be closed! errno: {:d}" ), generatorId, errno );
       }
     }
   }
@@ -169,7 +130,7 @@ void RecordingServer::printDebugInfo() {
     this->logger_->info( fmt::runtime( "  - Sample rate: {:d}" ), pair.second.sampleRate );
     this->logger_->info( fmt::runtime( "  - Bits per sample: {:d}" ), pair.second.bitsPerSample );
     std::stringstream audioDataStream;
-    for( uint8_t byte : pair.second.audioData ) {
+    for( char byte : pair.second.audioData ) {
       audioDataStream << std::to_string( byte ) << ", ";
     }
     this->logger_->info( fmt::runtime( "  - Audio data: [{:s}] ({:d} bytes)" ), audioDataStream.str(), pair.second.audioData.size() );
