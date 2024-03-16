@@ -32,16 +32,19 @@ void RecordingServer::setupAudioGenerator( std::string const& generatorId,
   if( this->audioMap_.contains( generatorId ) ) {
     this->logger_->error( fmt::runtime( "setupAudioGenerator - Generator '{:s}' already existing" ), generatorId );
   } else {
-    this->audioMap_[generatorId]
-        = AudioInformation{ .type = format, .channels = channels, .sampleRate = sampleRate, .bitsPerSample = bitsPerSample, .audioData = std::list< BYTE >() };
+    this->audioMap_[generatorId] = AudioInformation{ .type = format,
+                                                     .channels = channels,
+                                                     .sampleRate = sampleRate,
+                                                     .bitsPerSample = bitsPerSample,
+                                                     .audioData = std::list< uint8_t >() };
   }
 
   this->logger_->trace( fmt::runtime( "setupAudioGenerator~" ) );
 }
 
-void RecordingServer::streamAudioFrame( std::string const& generatorId, std::list< BYTE > data ) {
+void RecordingServer::streamAudioFrame( std::string const& generatorId, std::list< uint8_t > data ) {
   std::stringstream audioDataStream;
-  for( BYTE byte : data ) {
+  for( uint8_t byte : data ) {
     audioDataStream << std::to_string( byte ) << ", ";
   }
   this->logger_->trace( fmt::runtime( "streamAudioFrame( generatorId = '{:s}', data = [{:s}], ({:d} bytes) )" ),
@@ -52,7 +55,7 @@ void RecordingServer::streamAudioFrame( std::string const& generatorId, std::lis
   if( !this->audioMap_.contains( generatorId ) ) {
     this->logger_->error( fmt::runtime( "streamAudioFrame - Generator '{:s}' doesn't exist" ), generatorId );
   } else {
-    for( BYTE byte : data ) {
+    for( uint8_t byte : data ) {
       this->audioMap_[generatorId].audioData.push_back( byte );
     }
   }
@@ -60,22 +63,22 @@ void RecordingServer::streamAudioFrame( std::string const& generatorId, std::lis
   this->logger_->trace( fmt::runtime( "streamAudioFrame~" ) );
 }
 
-std::list< BYTE > int16ToLittleBytes( int16_t val ) {
-  std::list< BYTE > ret;
+std::list< uint8_t > int16ToLittleBytes( int16_t val ) {
+  std::list< uint8_t > ret;
   ret.push_back( val & 0xFF );
   ret.push_back( ( val >> 8 ) & 0xFF );
   return ret;
 }
 
-std::list< BYTE > uint16ToLittleBytes( uint16_t val ) {
-  std::list< BYTE > ret;
+std::list< uint8_t > uint16ToLittleBytes( uint16_t val ) {
+  std::list< uint8_t > ret;
   ret.push_back( val & 0xFF );
   ret.push_back( ( val >> 8 ) & 0xFF );
   return ret;
 }
 
-std::list< BYTE > int32ToLittleBytes( int32_t val ) {
-  std::list< BYTE > ret;
+std::list< uint8_t > int32ToLittleBytes( int32_t val ) {
+  std::list< uint8_t > ret;
   ret.push_back( val & 0xFF );
   ret.push_back( ( val >> 8 ) & 0xFF );
   ret.push_back( ( val >> 16 ) & 0xFF );
@@ -83,8 +86,8 @@ std::list< BYTE > int32ToLittleBytes( int32_t val ) {
   return ret;
 }
 
-std::list< BYTE > uint32ToLittleBytes( uint32_t val ) {
-  std::list< BYTE > ret;
+std::list< uint8_t > uint32ToLittleBytes( uint32_t val ) {
+  std::list< uint8_t > ret;
   ret.push_back( val & 0xFF );
   ret.push_back( ( val >> 8 ) & 0xFF );
   ret.push_back( ( val >> 16 ) & 0xFF );
@@ -112,37 +115,37 @@ void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
       uint16_t blockAlign = ( audioStructData.channels ) * ( audioStructData.bitsPerSample / 8 );
 
       fputs( "RIFF", wavFile );
-      for( BYTE byte : uint32ToLittleBytes( entireFileSize ) ) {
+      for( uint8_t byte : uint32ToLittleBytes( entireFileSize ) ) {
         fputc( byte, wavFile );
       }
       fputs( "WAVE", wavFile );
       fputs( "fmt ", wavFile );
-      for( BYTE byte : uint32ToLittleBytes( fmtBlockSize ) ) {
+      for( uint8_t byte : uint32ToLittleBytes( fmtBlockSize ) ) {
         fputc( byte, wavFile );
       }
-      for( BYTE byte : uint16ToLittleBytes( static_cast< uint16_t >( audioStructData.type ) ) ) {
+      for( uint8_t byte : uint16ToLittleBytes( static_cast< uint16_t >( audioStructData.type ) ) ) {
         fputc( byte, wavFile );
       }
-      for( BYTE byte : uint16ToLittleBytes( audioStructData.channels ) ) {
+      for( uint8_t byte : uint16ToLittleBytes( audioStructData.channels ) ) {
         fputc( byte, wavFile );
       }
-      for( BYTE byte : uint32ToLittleBytes( audioStructData.sampleRate ) ) {
+      for( uint8_t byte : uint32ToLittleBytes( audioStructData.sampleRate ) ) {
         fputc( byte, wavFile );
       }
-      for( BYTE byte : uint32ToLittleBytes( byteRate ) ) {
+      for( uint8_t byte : uint32ToLittleBytes( byteRate ) ) {
         fputc( byte, wavFile );
       }
-      for( BYTE byte : uint16ToLittleBytes( blockAlign ) ) {
+      for( uint8_t byte : uint16ToLittleBytes( blockAlign ) ) {
         fputc( byte, wavFile );
       }
-      for( BYTE byte : uint16ToLittleBytes( audioStructData.bitsPerSample ) ) {
+      for( uint8_t byte : uint16ToLittleBytes( audioStructData.bitsPerSample ) ) {
         fputc( byte, wavFile );
       }
       fputs( "data", wavFile );
-      for( BYTE byte : uint32ToLittleBytes( dataBlockSize ) ) {
+      for( uint8_t byte : uint32ToLittleBytes( dataBlockSize ) ) {
         fputc( byte, wavFile );
       }
-      for( BYTE byte : audioStructData.audioData ) {
+      for( uint8_t byte : audioStructData.audioData ) {
         fputc( byte, wavFile );
       }
 
@@ -166,7 +169,7 @@ void RecordingServer::printDebugInfo() {
     this->logger_->info( fmt::runtime( "  - Sample rate: {:d}" ), pair.second.sampleRate );
     this->logger_->info( fmt::runtime( "  - Bits per sample: {:d}" ), pair.second.bitsPerSample );
     std::stringstream audioDataStream;
-    for( BYTE byte : pair.second.audioData ) {
+    for( uint8_t byte : pair.second.audioData ) {
       audioDataStream << std::to_string( byte ) << ", ";
     }
     this->logger_->info( fmt::runtime( "  - Audio data: [{:s}] ({:d} bytes)" ), audioDataStream.str(), pair.second.audioData.size() );

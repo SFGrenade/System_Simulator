@@ -22,10 +22,10 @@ int main( int argc, char** argv ) {
                          + static_cast< int16_t >( static_cast< double >( MAXINT16 - MININT16 )
                                                    * ( static_cast< double >( ( i * 150 ) % sampleRate ) / static_cast< double >( sampleRate ) ) ) );
   }
-  std::list< BYTE > valuesBytes;
+  std::list< uint8_t > valuesBytes;
   for( int16_t value : valuesRaw ) {
-    valuesBytes.push_back( reinterpret_cast< BYTE* >( &value )[0] );
-    valuesBytes.push_back( reinterpret_cast< BYTE* >( &value )[1] );
+    valuesBytes.push_back( reinterpret_cast< uint8_t* >( &value )[0] );
+    valuesBytes.push_back( reinterpret_cast< uint8_t* >( &value )[1] );
   }
 
   server.setupAudioGenerator( "TestGenerator", SFG::SystemSimulator::RecordingServer::AudioFormatType::PCM, 1, sampleRate, 16 );

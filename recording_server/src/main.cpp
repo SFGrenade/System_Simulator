@@ -41,7 +41,7 @@ int main( int argc, char** argv ) {
   netConnector->subscribe( new SSP::AudioFrame(), [&]( google::protobuf::Message const& req ) {
     SSP::AudioFrame const& actualReq = dynamic_cast< SSP::AudioFrame const& >( req );
 
-    std::list< BYTE > actualData;
+    std::list< uint8_t > actualData;
     for( char byte : actualReq.audio_data() ) {
       actualData.push_back( byte );
     }

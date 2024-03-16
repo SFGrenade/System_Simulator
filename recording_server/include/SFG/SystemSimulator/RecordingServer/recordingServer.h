@@ -17,7 +17,7 @@ struct AudioInformation {
   uint16_t channels;
   uint32_t sampleRate;
   uint16_t bitsPerSample;
-  std::list< BYTE > audioData;
+  std::list< uint8_t > audioData;
 };
 
 class RecordingServer {
@@ -26,7 +26,7 @@ class RecordingServer {
   ~RecordingServer();
 
   void setupAudioGenerator( std::string const& generatorId, AudioFormatType format, uint16_t channels, uint32_t sampleRate, uint16_t bitsPerSample );
-  void streamAudioFrame( std::string const& generatorId, std::list< BYTE > data );
+  void streamAudioFrame( std::string const& generatorId, std::list< uint8_t > data );
 
   void saveAudioGenerator( std::string const& generatorId );
 
