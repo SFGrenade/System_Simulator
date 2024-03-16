@@ -1,6 +1,6 @@
 #include "SFG/SystemSimulator/RecordingServer/recordingServer.h"
 
-#include <cerrno>
+#include <fstream>
 
 namespace SFG {
 namespace SystemSimulator {
@@ -63,9 +63,9 @@ void RecordingServer::streamAudioFrame( std::string const& generatorId, std::lis
 }
 
 template < typename T >
-void writeLittleEndian( T value, FILE* file ) {
+void writeLittleEndian( T value, std::ofstream& file ) {
   for( int i = 0; i < sizeof( T ); i++ ) {
-    fputc( static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF ), file );
+    file << static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF );
   }
 }
 
@@ -76,9 +76,9 @@ void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
     this->logger_->error( fmt::runtime( "saveAudioGenerator - Generator '{:s}' doesn't exist" ), generatorId );
   } else {
     auto audioStructData = this->audioMap_[generatorId];
-    FILE* wavFile = fopen( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ).c_str(), "wb" );
-    if( !wavFile ) {
-      this->logger_->error( fmt::runtime( "saveAudioGenerator - Generator '{:s}' couldn't be saved!" ), generatorId );
+    std::ofstream wavFile( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ), std::ios_base::out | std::ios_base::binary | std::ios_base::trunc );
+    if( !wavFile.is_open() ) {
+      this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be opened!" ), generatorId );
     } else {
       uint32_t dataBlockSize = audioStructData.audioData.size();
       uint32_t fmtBlockSize = 16;
@@ -88,10 +88,10 @@ void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
       uint32_t byteRate = ( audioStructData.sampleRate * audioStructData.channels ) * ( audioStructData.bitsPerSample / 8 );
       uint16_t blockAlign = ( audioStructData.channels ) * ( audioStructData.bitsPerSample / 8 );
 
-      fputs( "RIFF", wavFile );
+      wavFile << "RIFF";
       writeLittleEndian< uint32_t >( entireFileSize, wavFile );
-      fputs( "WAVE", wavFile );
-      fputs( "fmt ", wavFile );
+      wavFile << "WAVE";
+      wavFile << "fmt ";
       writeLittleEndian< uint32_t >( fmtBlockSize, wavFile );
       writeLittleEndian< uint16_t >( static_cast< uint16_t >( audioStructData.type ), wavFile );
       writeLittleEndian< uint16_t >( audioStructData.channels, wavFile );
@@ -99,20 +99,19 @@ void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
       writeLittleEndian< uint32_t >( byteRate, wavFile );
       writeLittleEndian< uint16_t >( blockAlign, wavFile );
       writeLittleEndian< uint16_t >( audioStructData.bitsPerSample, wavFile );
-      fputs( "data", wavFile );
+      wavFile << "data";
       writeLittleEndian< uint32_t >( dataBlockSize, wavFile );
       for( char byte : audioStructData.audioData ) {
-        fputc( byte, wavFile );
+        wavFile << byte;
+      }
+
+      if( !wavFile.good() ) {
+        this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be written to!" ), generatorId );
       }
 
       std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
-      if( !fflush( wavFile ) ) {
-        this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be flushed! errno: {:d}" ), generatorId, errno );
-      }
-      if( !fclose( wavFile ) ) {
-        this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be closed! errno: {:d}" ), generatorId, errno );
-      }
+      wavFile.close();
     }
   }
 
