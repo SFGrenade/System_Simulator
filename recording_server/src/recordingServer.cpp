@@ -1,4 +1,4 @@
-#include "SFG/SystemSimulator/RecordingServer/RecordingServer.h"
+#include "SFG/SystemSimulator/RecordingServer/recordingServer.h"
 
 namespace SFG {
 namespace SystemSimulator {
