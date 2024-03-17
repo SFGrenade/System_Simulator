@@ -21,6 +21,7 @@ class RecordingServer {
   private:
   SFG::SystemSimulator::Logger::spdlogger logger_;
   SFG::SystemSimulator::Configuration::Configuration config_;
+  std::string exportPath_;
 };
 
 }  // namespace RecordingServer

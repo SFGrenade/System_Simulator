@@ -7,28 +7,10 @@ namespace SystemSimulator {
 namespace RecordingServer {
 
 template < typename T >
-void writeLittleEndian( T value, std::ofstream& file ) {
-  for( int i = 0; i < sizeof( T ); i++ ) {
-    file << static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF );
-  }
-}
-
-template < typename T >
 void writeLittleEndian( T value, std::fstream& file ) {
   for( int i = 0; i < sizeof( T ); i++ ) {
     file << static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF );
   }
-}
-
-template < typename T >
-T readLittleEndian( std::ifstream& file ) {
-  T ret;
-  for( int i = 0; i < sizeof( T ); i++ ) {
-    char value;
-    file >> value;
-    ret += static_cast< T >( value << ( 8 * i ) );
-  }
-  return ret;
 }
 
 template < typename T >
@@ -43,7 +25,9 @@ T readLittleEndian( std::fstream& file ) {
 }
 
 RecordingServer::RecordingServer()
-    : logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "RecordingServer" ) ), config_( "config/recording_server.ini" ) {
+    : logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "RecordingServer" ) ),
+      config_( "config/recording_server.ini" ),
+      exportPath_( this->config_.get< std::string >( "Export", "Path" ) ) {
   this->logger_->trace( fmt::runtime( "RecordingServer" ) );
 
   this->logger_->trace( fmt::runtime( "RecordingServer~" ) );
@@ -62,7 +46,8 @@ void RecordingServer::setupAudioGenerator( std::string const& generatorId, uint1
                         sampleRate,
                         bitsPerSample );
 
-  std::ofstream wavFile( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ), std::ios_base::out | std::ios_base::binary | std::ios_base::trunc );
+  std::fstream wavFile( fmt::format( fmt::runtime( "{:s}/export_{:s}.wav" ), this->exportPath_, generatorId ),
+                        std::ios_base::out | std::ios_base::binary | std::ios_base::trunc );
   if( !wavFile.is_open() ) {
     this->logger_->error( fmt::runtime( "setupAudioGenerator - file 'export_{:s}.wav' couldn't be opened!" ), generatorId );
   } else {
@@ -110,7 +95,8 @@ void RecordingServer::streamAudioFrame( std::string const& generatorId, std::lis
                         /* audioDataStream.str(), */
                         data.size() );
 
-  std::fstream wavFile( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ), std::ios_base::in | std::ios_base::out | std::ios_base::binary );
+  std::fstream wavFile( fmt::format( fmt::runtime( "{:s}/export_{:s}.wav" ), this->exportPath_, generatorId ),
+                        std::ios_base::in | std::ios_base::out | std::ios_base::binary );
   if( !wavFile.is_open() ) {
     this->logger_->error( fmt::runtime( "streamAudioFrame - file 'export_{:s}.wav' couldn't be opened!" ), generatorId );
   } else {
