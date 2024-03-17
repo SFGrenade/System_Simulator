@@ -61,6 +61,7 @@ int audioMonitoringCallback( const void *inputBuffer,
   }
   rep->set_audio_generator_id( "AudioInterface" );
   rep->set_audio_data( std::string( reinterpret_cast< char * >( audioData ), framesPerBuffer * 2 ) );
+  delete[] audioData;
   ( *data->netConnector )->sendMessage( rep );
 
   return PortAudio::PaStreamCallbackResult::paContinue;
