@@ -23,17 +23,7 @@ int main( int argc, char** argv ) {
   netConnector->subscribe( new SSP::AudioFormatInformation(), [&]( google::protobuf::Message const& req ) {
     SSP::AudioFormatInformation const& actualReq = dynamic_cast< SSP::AudioFormatInformation const& >( req );
 
-    SFG::SystemSimulator::RecordingServer::AudioFormatType actualType;
-    switch( actualReq.type() ) {
-      case SSP::AudioFormatType::PCM:
-        actualType = SFG::SystemSimulator::RecordingServer::AudioFormatType::PCM;
-        break;
-      default:
-        break;
-    }
-
     recordingServer.setupAudioGenerator( actualReq.audio_generator_id(),
-                                         actualType,
                                          static_cast< uint16_t >( actualReq.channels() ),
                                          static_cast< uint32_t >( actualReq.sample_rate() ),
                                          static_cast< uint16_t >( actualReq.bits_per_sample() ) );
@@ -47,11 +37,6 @@ int main( int argc, char** argv ) {
     }
 
     recordingServer.streamAudioFrame( actualReq.audio_generator_id(), actualData );
-  } );
-  netConnector->subscribe( new SSP::DoneStreamingAudio(), [&]( google::protobuf::Message const& req ) {
-    SSP::DoneStreamingAudio const& actualReq = dynamic_cast< SSP::DoneStreamingAudio const& >( req );
-
-    recordingServer.saveAudioGenerator( actualReq.audio_generator_id() );
   } );
 
   while( 1 ) {

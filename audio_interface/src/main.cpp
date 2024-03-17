@@ -160,7 +160,6 @@ int main( int argc, char **argv ) {
 
     SSP::AudioFormatInformation *rep = new SSP::AudioFormatInformation();
     rep->set_audio_generator_id( "AudioInterface" );
-    rep->set_type( SSP::AudioFormatType::PCM );
     rep->set_channels( myData.inputSettings.channelCount );
     rep->set_sample_rate( myData.sampleRate );
     switch( myData.inputSettings.sampleFormat ) {
@@ -214,10 +213,6 @@ int main( int argc, char **argv ) {
       spdlog::error( fmt::runtime( "PortAudio Pa_Terminate error: {:#x}, {:s}" ), err, PortAudio::Pa_GetErrorText( err ) );
     }
   }
-
-  SSP::DoneStreamingAudio *doneStreamingRep = new SSP::DoneStreamingAudio();
-  doneStreamingRep->set_audio_generator_id( "AudioInterface" );
-  netConnector->sendMessage( doneStreamingRep );
 
   std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
   done = true;

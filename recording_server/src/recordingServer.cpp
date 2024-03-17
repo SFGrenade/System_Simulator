@@ -6,6 +6,42 @@ namespace SFG {
 namespace SystemSimulator {
 namespace RecordingServer {
 
+template < typename T >
+void writeLittleEndian( T value, std::ofstream& file ) {
+  for( int i = 0; i < sizeof( T ); i++ ) {
+    file << static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF );
+  }
+}
+
+template < typename T >
+void writeLittleEndian( T value, std::fstream& file ) {
+  for( int i = 0; i < sizeof( T ); i++ ) {
+    file << static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF );
+  }
+}
+
+template < typename T >
+T readLittleEndian( std::ifstream& file ) {
+  T ret;
+  for( int i = 0; i < sizeof( T ); i++ ) {
+    char value;
+    file >> value;
+    ret += static_cast< T >( value << ( 8 * i ) );
+  }
+  return ret;
+}
+
+template < typename T >
+T readLittleEndian( std::fstream& file ) {
+  T ret;
+  for( int i = 0; i < sizeof( T ); i++ ) {
+    char value;
+    file >> value;
+    ret += static_cast< T >( value << ( 8 * i ) );
+  }
+  return ret;
+}
+
 RecordingServer::RecordingServer()
     : logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "RecordingServer" ) ), config_( "config/recording_server.ini" ) {
   this->logger_->trace( fmt::runtime( "RecordingServer" ) );
@@ -19,123 +55,89 @@ RecordingServer::~RecordingServer() {
   this->logger_->trace( fmt::runtime( "~RecordingServer~" ) );
 }
 
-void RecordingServer::setupAudioGenerator( std::string const& generatorId,
-                                           AudioFormatType format,
-                                           uint16_t channels,
-                                           uint32_t sampleRate,
-                                           uint16_t bitsPerSample ) {
-  this->logger_->trace( fmt::runtime( "setupAudioGenerator( generatorId = '{:s}', format: {:d}, channels: {:d}, sampleRate: {:d}, bitsPerSample: {:d} )" ),
+void RecordingServer::setupAudioGenerator( std::string const& generatorId, uint16_t channels, uint32_t sampleRate, uint16_t bitsPerSample ) {
+  this->logger_->trace( fmt::runtime( "setupAudioGenerator( generatorId = '{:s}', channels: {:d}, sampleRate: {:d}, bitsPerSample: {:d} )" ),
                         generatorId,
-                        static_cast< uint16_t >( format ),
                         channels,
                         sampleRate,
                         bitsPerSample );
 
-  if( this->audioMap_.contains( generatorId ) ) {
-    this->logger_->error( fmt::runtime( "setupAudioGenerator - Generator '{:s}' already existing" ), generatorId );
+  std::ofstream wavFile( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ), std::ios_base::out | std::ios_base::binary | std::ios_base::trunc );
+  if( !wavFile.is_open() ) {
+    this->logger_->error( fmt::runtime( "setupAudioGenerator - file 'export_{:s}.wav' couldn't be opened!" ), generatorId );
   } else {
-    this->audioMap_[generatorId]
-        = AudioInformation{ .type = format, .channels = channels, .sampleRate = sampleRate, .bitsPerSample = bitsPerSample, .audioData = std::list< char >() };
+    // idx: 0
+    wavFile << "RIFF";
+    // idx: 4
+    writeLittleEndian< uint32_t >( 0, wavFile );
+    // idx: 8
+    wavFile << "WAVE";
+    // idx: 12
+    wavFile << "fmt ";
+    // idx: 16
+    writeLittleEndian< uint32_t >( sizeof( uint16_t ) + sizeof( uint16_t ) + sizeof( uint32_t ) + sizeof( uint32_t ) + sizeof( uint16_t ) + sizeof( uint16_t ),
+                                   wavFile );  // "fmt " block size
+    // idx: 20
+    writeLittleEndian< uint16_t >( 1, wavFile );  // 1 = pcm
+    // idx: 22
+    writeLittleEndian< uint16_t >( channels, wavFile );
+    // idx: 24
+    writeLittleEndian< uint32_t >( sampleRate, wavFile );
+    // idx: 28
+    writeLittleEndian< uint32_t >( sampleRate * channels * ( bitsPerSample / 8 ), wavFile );  // byte rate
+    // idx: 32
+    writeLittleEndian< uint16_t >( channels * ( bitsPerSample / 8 ), wavFile );  // block align
+    // idx: 34
+    writeLittleEndian< uint16_t >( bitsPerSample, wavFile );
+    // idx: 36
+    wavFile << "data";
+    // idx: 40
+    writeLittleEndian< uint32_t >( 0, wavFile );
+
+    wavFile.close();
   }
 
   this->logger_->trace( fmt::runtime( "setupAudioGenerator~" ) );
 }
 
 void RecordingServer::streamAudioFrame( std::string const& generatorId, std::list< char > data ) {
-  std::stringstream audioDataStream;
-  for( char byte : data ) {
-    audioDataStream << std::to_string( byte ) << ", ";
-  }
-  this->logger_->trace( fmt::runtime( "streamAudioFrame( generatorId = '{:s}', data = [{:s}], ({:d} bytes) )" ),
+  // std::stringstream audioDataStream;
+  // for( char byte : data ) {
+  //   audioDataStream << std::to_string( byte ) << ", ";
+  // }
+  this->logger_->trace( fmt::runtime( "streamAudioFrame( generatorId = '{:s}', data = {:d} bytes )" ),
                         generatorId,
-                        audioDataStream.str(),
+                        /* audioDataStream.str(), */
                         data.size() );
 
-  if( !this->audioMap_.contains( generatorId ) ) {
-    this->logger_->error( fmt::runtime( "streamAudioFrame - Generator '{:s}' doesn't exist" ), generatorId );
+  std::fstream wavFile( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ), std::ios_base::in | std::ios_base::out | std::ios_base::binary );
+  if( !wavFile.is_open() ) {
+    this->logger_->error( fmt::runtime( "streamAudioFrame - file 'export_{:s}.wav' couldn't be opened!" ), generatorId );
   } else {
+    // RIFF chunk
+    wavFile.seekg( 4, std::ios_base::beg );
+    uint32_t fileChunkSize = readLittleEndian< uint32_t >( wavFile );
+    wavFile.seekp( 4, std::ios_base::beg );
+    writeLittleEndian< uint32_t >( fileChunkSize + data.size(), wavFile );
+    this->logger_->trace( fmt::runtime( "streamAudioFrame - changing file size from {:d} to {:d}" ), fileChunkSize, fileChunkSize + data.size() );
+
+    // data chunk
+    wavFile.seekg( 40, std::ios_base::beg );
+    uint32_t dataChunkSize = readLittleEndian< uint32_t >( wavFile );
+    wavFile.seekp( 40, std::ios_base::beg );
+    writeLittleEndian< uint32_t >( dataChunkSize + data.size(), wavFile );
+    this->logger_->trace( fmt::runtime( "streamAudioFrame - changing data size from {:d} to {:d}" ), dataChunkSize, dataChunkSize + data.size() );
+
+    wavFile.seekg( 0, std::ios_base::end );
+    wavFile.seekp( 0, std::ios_base::end );
     for( char byte : data ) {
-      this->audioMap_[generatorId].audioData.push_back( byte );
+      wavFile << byte;
     }
+
+    wavFile.close();
   }
 
   this->logger_->trace( fmt::runtime( "streamAudioFrame~" ) );
-}
-
-template < typename T >
-void writeLittleEndian( T value, std::ofstream& file ) {
-  for( int i = 0; i < sizeof( T ); i++ ) {
-    file << static_cast< char >( ( value >> ( 8 * i ) ) & 0xFF );
-  }
-}
-
-void RecordingServer::saveAudioGenerator( std::string const& generatorId ) {
-  this->logger_->trace( fmt::runtime( "saveAudioGenerator( generatorId = '{:s}' )" ), generatorId );
-
-  if( !this->audioMap_.contains( generatorId ) ) {
-    this->logger_->error( fmt::runtime( "saveAudioGenerator - Generator '{:s}' doesn't exist" ), generatorId );
-  } else {
-    auto audioStructData = this->audioMap_[generatorId];
-    std::ofstream wavFile( fmt::format( fmt::runtime( "export_{:s}.wav" ), generatorId ), std::ios_base::out | std::ios_base::binary | std::ios_base::trunc );
-    if( !wavFile.is_open() ) {
-      this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be opened!" ), generatorId );
-    } else {
-      uint32_t dataBlockSize = audioStructData.audioData.size();
-      uint32_t fmtBlockSize = 16;
-      // "WAVE" + "fmt " + fmt size + fmt block + "data" + data size + data block
-      uint32_t entireFileSize = 4 + 4 + 4 + fmtBlockSize + 4 + 4 + dataBlockSize;
-
-      uint32_t byteRate = ( audioStructData.sampleRate * audioStructData.channels ) * ( audioStructData.bitsPerSample / 8 );
-      uint16_t blockAlign = ( audioStructData.channels ) * ( audioStructData.bitsPerSample / 8 );
-
-      wavFile << "RIFF";
-      writeLittleEndian< uint32_t >( entireFileSize, wavFile );
-      wavFile << "WAVE";
-      wavFile << "fmt ";
-      writeLittleEndian< uint32_t >( fmtBlockSize, wavFile );
-      writeLittleEndian< uint16_t >( static_cast< uint16_t >( audioStructData.type ), wavFile );
-      writeLittleEndian< uint16_t >( audioStructData.channels, wavFile );
-      writeLittleEndian< uint32_t >( audioStructData.sampleRate, wavFile );
-      writeLittleEndian< uint32_t >( byteRate, wavFile );
-      writeLittleEndian< uint16_t >( blockAlign, wavFile );
-      writeLittleEndian< uint16_t >( audioStructData.bitsPerSample, wavFile );
-      wavFile << "data";
-      writeLittleEndian< uint32_t >( dataBlockSize, wavFile );
-      for( char byte : audioStructData.audioData ) {
-        wavFile << byte;
-      }
-
-      if( !wavFile.good() ) {
-        this->logger_->error( fmt::runtime( "saveAudioGenerator - file 'export_{:s}.wav' couldn't be written to!" ), generatorId );
-      }
-
-      std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
-
-      wavFile.close();
-    }
-  }
-
-  this->logger_->trace( fmt::runtime( "saveAudioGenerator~" ) );
-}
-
-void RecordingServer::printDebugInfo() {
-  this->logger_->trace( fmt::runtime( "printDebugInfo" ) );
-
-  this->logger_->info( fmt::runtime( "Audio streams:" ) );
-  for( auto const& pair : this->audioMap_ ) {
-    this->logger_->info( fmt::runtime( "- '{:s}':" ), pair.first );
-    this->logger_->info( fmt::runtime( "  - type: {:d}" ), static_cast< uint16_t >( pair.second.type ) );
-    this->logger_->info( fmt::runtime( "  - Channels: {:d}" ), pair.second.channels );
-    this->logger_->info( fmt::runtime( "  - Sample rate: {:d}" ), pair.second.sampleRate );
-    this->logger_->info( fmt::runtime( "  - Bits per sample: {:d}" ), pair.second.bitsPerSample );
-    std::stringstream audioDataStream;
-    for( char byte : pair.second.audioData ) {
-      audioDataStream << std::to_string( byte ) << ", ";
-    }
-    this->logger_->info( fmt::runtime( "  - Audio data: [{:s}] ({:d} bytes)" ), audioDataStream.str(), pair.second.audioData.size() );
-  }
-
-  this->logger_->trace( fmt::runtime( "printDebugInfo~" ) );
 }
 
 }  // namespace RecordingServer
