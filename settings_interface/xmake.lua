@@ -41,11 +41,11 @@ target( "Settings-Interface-Exe" )
 for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
-        set_default( false )
         add_rules("qt.widgetapp")
         add_deps(  "Settings-Interface", { public = true } )
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
         add_frameworks( "QtCore", "QtGui", "QtWidgets" )
+        set_default( false )
 end

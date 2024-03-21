@@ -21,9 +21,9 @@ target( "Logger" )
 for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
-        set_default( false )
         set_kind( "binary" )
         add_deps(  "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
+        set_default( false )
 end
