@@ -21,5 +21,4 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
-        set_default( false )
 end

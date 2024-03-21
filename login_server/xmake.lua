@@ -1,5 +1,4 @@
 target( "Login-Server" )
-    set_default( false )
     set_kind( "static" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
@@ -39,5 +38,4 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
-        set_default( false )
 end

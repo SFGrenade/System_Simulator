@@ -1,5 +1,4 @@
 target( "Settings-Interface" )
-    set_default( false )
     add_rules("qt.static")
     --add_rules("qt.shared")
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
@@ -47,5 +46,4 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
         add_frameworks( "QtCore", "QtGui", "QtWidgets" )
-        set_default( false )
 end
