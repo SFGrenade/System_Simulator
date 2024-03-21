@@ -8,6 +8,9 @@ target( "Logger" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
+    set_default( false )
+    set_group( "LIBS" )
+
     --add_packages( "fmt", { public = true } )
     add_packages( "spdlog", { public = true } )
 
@@ -22,6 +25,8 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
         set_kind( "binary" )
+        set_default( false )
+        set_group( "TESTS" )
         add_deps(  "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )

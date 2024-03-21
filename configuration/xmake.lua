@@ -5,6 +5,9 @@ target( "Configuration" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
+    set_default( false )
+    set_group( "LIBS" )
+
     add_packages( "inifile-cpp", { public = true } )
 
     add_includedirs( "include", { public = true } )
@@ -27,6 +30,8 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
         set_kind( "binary" )
+        set_default( false )
+        set_group( "TESTS" )
         add_deps(  "Configuration", { public = true } )
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )

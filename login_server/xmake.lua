@@ -3,6 +3,9 @@ target( "Login-Server" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
+    set_default( false )
+    set_group( "LIBS" )
+
     add_deps( "Configuration", { public = true } )
     add_deps( "Logger", { public = true } )
     add_deps( "Proto-Messages", { public = true } )
@@ -16,6 +19,9 @@ target( "Login-Server" )
 
 target( "Login-Server-Exe" )
     set_kind( "binary" )
+
+    set_default( true )
+    set_group( "EXES" )
 
     add_deps( "Login-Server" )
 
@@ -34,6 +40,8 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
         set_kind( "binary" )
+        set_default( false )
+        set_group( "TESTS" )
         add_deps(  "Login-Server", { public = true } )
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )

@@ -3,6 +3,9 @@ target( "Settings-Interface" )
     --add_rules("qt.shared")
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
+    set_default( false )
+    set_group( "LIBS" )
+
     add_deps( "Logger", { public = true } )
     add_deps( "Proto-Messages", { public = true } )
 
@@ -21,6 +24,9 @@ target( "Settings-Interface" )
 
 target( "Settings-Interface-Exe" )
     add_rules("qt.widgetapp")
+
+    set_default( true )
+    set_group( "EXES" )
 
     add_deps( "Settings-Interface", { public = true } )
 
@@ -41,6 +47,8 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
         add_rules("qt.widgetapp")
+        set_default( false )
+        set_group( "TESTS" )
         add_deps(  "Settings-Interface", { public = true } )
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )

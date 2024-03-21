@@ -8,6 +8,9 @@ target( "Audio-Interface" )
     --set_kind( "shared" )
     --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
+    set_default( false )
+    set_group( "LIBS" )
+
     add_packages( "portaudio", { public = true } )
 
     add_deps( "Configuration", { public = true } )
@@ -23,6 +26,9 @@ target( "Audio-Interface" )
 
 target( "Audio-Interface-Exe" )
     set_kind( "binary" )
+
+    set_default( true )
+    set_group( "EXES" )
 
     add_deps( "Audio-Interface", { public = true } )
 
@@ -41,6 +47,8 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
     local name = path.basename( file )
     target( name )
         set_kind( "binary" )
+        set_default( false )
+        set_group( "TESTS" )
         add_deps(  "Audio-Interface", { public = true } )
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
