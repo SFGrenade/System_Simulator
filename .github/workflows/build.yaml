@@ -61,12 +61,8 @@ jobs:
     - name: Setup xmake
       uses: xmake-io/github-action-setup-xmake@v1.2.2
       with:
-        xmake-version: latest
+        xmake-version: branch@dev
         actions-cache-folder: .xmake-cache-W${{ steps.cache_key.outputs.key }}
-
-    # Use dev branch of xmake
-    - name: Switch xmake branch
-      run: xmake update -s --yes -vD dev
 
     # Update xmake repository (in order to have the file that will be cached)
     - name: Update xmake repository
