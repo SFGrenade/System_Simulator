@@ -10,6 +10,8 @@ int main( int argc, char** argv ) {
   }
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
+  { SFG::SystemSimulator::Logger::ScopedLog( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "ScopedLog" ), "Entry", "Exit" ); }
+
   spdlog::trace( fmt::runtime( "~main" ) );
   SFG::SystemSimulator::Logger::LoggerFactory::deinit();
   return 0;
