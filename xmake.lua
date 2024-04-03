@@ -14,6 +14,7 @@ if is_plat( "windows" ) then
 
     add_cxflags( "/permissive-" )
 
+    -- MD required because Qt
     -- MDd somehow breaks installation of packages lol
     --set_runtimes(is_mode("debug") and "MDd" or "MD")
     set_runtimes(is_mode("debug") and "MD" or "MD")
@@ -35,7 +36,7 @@ set_policy("build.across_targets_in_parallel", false)
 
 --add_repositories( "local-repo E:\\xmake_packages" )
 
-add_requireconfs( "*", { configs = { shared = false } } )
+add_requireconfs( "*", { configs = { shared = get_config( "kind" ) == "shared" } } )
 
 includes( "audio_interface" )
 includes( "configuration" )

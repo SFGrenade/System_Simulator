@@ -53,5 +53,5 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         add_deps( "Logger", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
-        add_frameworks( "QtCore", "QtGui", "QtWidgets" )
+        add_frameworks( "QtCore", "QtGui", "QtWidgets", "QtTest" )
 end

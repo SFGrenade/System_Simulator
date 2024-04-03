@@ -106,7 +106,7 @@
     {
       "label": "XMake package",
       "type": "shell",
-      "command": "xmake package -ao -vD E:\\xmake_packages >_build_logs\\10_package.txt 2>&1",
+      "command": "xmake package -vD -ao E:\\xmake_packages >_build_logs\\10_package.txt 2>&1",
       "problemMatcher": []
     },
     {
@@ -125,7 +125,7 @@
     {
       "label": "XMake install",
       "type": "shell",
-      "command": "xmake install -ao -vD E:\\System_Simulator >_build_logs\\20_install.txt 2>&1",
+      "command": "xmake install -vD -ao E:\\System_Simulator >_build_logs\\20_install.txt 2>&1",
       "problemMatcher": []
     },
     {
