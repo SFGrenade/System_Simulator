@@ -1,5 +1,6 @@
 #include "SFG/SystemSimulator/SettingsInterface/mainWindow.h"
 
+#include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
 #include <database.pb.h>
 
 namespace SFG {

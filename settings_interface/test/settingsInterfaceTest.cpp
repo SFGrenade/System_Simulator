@@ -1,4 +1,5 @@
 #include <QAbstractItemModelTester>
+#include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 #include <SFG/SystemSimulator/SettingsInterface/models/userModel.h>
 #include <string>
@@ -7,26 +8,25 @@
 void MyQtMessageHandler( QtMsgType type, QMessageLogContext const& context, QString const& msg ) {
   SFG::SystemSimulator::Logger::spdlogger qtLogger = SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "Qt" );
 
-  QByteArray localMsg = msg.toLocal8Bit();
   const char* contextFile = context.file ? context.file : "";
   const char* contextFunction = context.function ? context.function : "";
 
   std::string debugFileInfo = fmt::format( fmt::runtime( "{:s}:{:d}, {:s}" ), contextFile, context.line, contextFunction );
   switch( type ) {
     case QtDebugMsg:
-      qtLogger->debug( fmt::runtime( "{:s} ({:s})" ), localMsg.constData(), debugFileInfo );
+      qtLogger->debug( fmt::runtime( "{:qs} ({:s})" ), msg, debugFileInfo );
       break;
     case QtInfoMsg:
-      qtLogger->info( fmt::runtime( "{:s} ({:s})" ), localMsg.constData(), debugFileInfo );
+      qtLogger->info( fmt::runtime( "{:qs} ({:s})" ), msg, debugFileInfo );
       break;
     case QtWarningMsg:
-      qtLogger->warn( fmt::runtime( "{:s} ({:s})" ), localMsg.constData(), debugFileInfo );
+      qtLogger->warn( fmt::runtime( "{:qs} ({:s})" ), msg, debugFileInfo );
       break;
     case QtCriticalMsg:
-      qtLogger->critical( fmt::runtime( "{:s} ({:s})" ), localMsg.constData(), debugFileInfo );
+      qtLogger->critical( fmt::runtime( "{:qs} ({:s})" ), msg, debugFileInfo );
       break;
     case QtFatalMsg:
-      qtLogger->critical( fmt::runtime( "{:s} ({:s})" ), localMsg.constData(), debugFileInfo );
+      qtLogger->critical( fmt::runtime( "{:qs} ({:s})" ), msg, debugFileInfo );
       break;
   }
 }
@@ -47,11 +47,9 @@ int main( int argc, char** argv ) {
 
   userModel->insertRow( 0 );
   userModel->setData( userModel->index( 0 ), 1ULL, static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserId ) );
+  userModel->setData( userModel->index( 0 ), QString( "Username" ), static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserName ) );
   userModel->setData( userModel->index( 0 ),
-                      QVariant::fromValue( QString::fromStdString( std::string( "Username" ) ) ),
-                      static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserName ) );
-  userModel->setData( userModel->index( 0 ),
-                      QVariant::fromValue( QString::fromStdString( std::string( "Password" ) ) ),
+                      QString( "Password" ),
                       static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserPasswordHash ) );
 
   delete modelTester_UserModel;

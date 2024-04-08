@@ -1,5 +1,7 @@
 #include "SFG/SystemSimulator/SettingsInterface/models/userModel.h"
 
+#include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
+
 namespace SFG {
 namespace SystemSimulator {
 namespace SettingsInterface {
@@ -29,7 +31,7 @@ QHash< int, QByteArray > UserModel::roleNames() const {
 
 int UserModel::rowCount( QModelIndex const &parent ) const {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "rowCount( parent: ({:d}, {:d}) )" ), parent.row(), parent.column() ),
+                                           fmt::format( fmt::runtime( "rowCount( parent: {:qmi} )" ), parent ),
                                            fmt::format( fmt::runtime( "rowCount()~" ) ) );
 
   if( parent.isValid() ) {
@@ -40,7 +42,7 @@ int UserModel::rowCount( QModelIndex const &parent ) const {
 
 Qt::ItemFlags UserModel::flags( QModelIndex const &index ) const {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "flags( index: ({:d}, {:d}) )" ), index.row(), index.column() ),
+                                           fmt::format( fmt::runtime( "flags( index: {:qmi} )" ), index ),
                                            fmt::format( fmt::runtime( "flags()~" ) ) );
 
   if( !index.isValid() ) {
@@ -60,7 +62,7 @@ Qt::ItemFlags UserModel::flags( QModelIndex const &index ) const {
 
 QVariant UserModel::data( QModelIndex const &index, int role ) const {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "data( index: ({:d}, {:d}), role: {:d} )" ), index.row(), index.column(), role ),
+                                           fmt::format( fmt::runtime( "data( index: {:qmi}, role: {:d} )" ), index, role ),
                                            fmt::format( fmt::runtime( "data()~" ) ) );
 
   if( !index.isValid() ) {
@@ -118,10 +120,7 @@ QVariant UserModel::headerData( int section, Qt::Orientation orientation, int ro
 
 bool UserModel::setData( QModelIndex const &index, QVariant const &value, int role ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "setData( index: ({:d}, {:d}), value: QVariant, role: {:d} )" ),
-                                                        index.row(),
-                                                        index.column(),
-                                                        role ),
+                                           fmt::format( fmt::runtime( "setData( index: {:qmi}, value: '{:qs}', role: {:d} )" ), index, value.toString(), role ),
                                            fmt::format( fmt::runtime( "setData()~" ) ) );
 
   if( !index.isValid() ) {
@@ -165,9 +164,10 @@ bool UserModel::setData( QModelIndex const &index, QVariant const &value, int ro
 
 bool UserModel::setHeaderData( int section, Qt::Orientation orientation, QVariant const &value, int role ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "setHeaderData( section: {:d}, orientation: {:d}, value: QVariant, role: {:d} )" ),
+                                           fmt::format( fmt::runtime( "setHeaderData( section: {:d}, orientation: {:d}, value: '{:qs}', role: {:d} )" ),
                                                         section,
                                                         static_cast< int >( orientation ),
+                                                        value.toString(),
                                                         role ),
                                            fmt::format( fmt::runtime( "setHeaderData()~" ) ) );
 
@@ -177,11 +177,7 @@ bool UserModel::setHeaderData( int section, Qt::Orientation orientation, QVarian
 
 bool UserModel::insertRows( int row, int count, QModelIndex const &parent ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "insertRows( row: {:d}, count: {:d}, parent: ({:d}, {:d}) )" ),
-                                                        row,
-                                                        count,
-                                                        parent.row(),
-                                                        parent.column() ),
+                                           fmt::format( fmt::runtime( "insertRows( row: {:d}, count: {:d}, parent: {:qmi} )" ), row, count, parent ),
                                            fmt::format( fmt::runtime( "insertRows()~" ) ) );
 
   if( parent.isValid() ) {
@@ -203,11 +199,7 @@ bool UserModel::insertRows( int row, int count, QModelIndex const &parent ) {
 
 bool UserModel::removeRows( int row, int count, QModelIndex const &parent ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "removeRows( row: {:d}, count: {:d}, parent: ({:d}, {:d}) )" ),
-                                                        row,
-                                                        count,
-                                                        parent.row(),
-                                                        parent.column() ),
+                                           fmt::format( fmt::runtime( "removeRows( row: {:d}, count: {:d}, parent: {:qmi} )" ), row, count, parent ),
                                            fmt::format( fmt::runtime( "removeRows()~" ) ) );
 
   if( parent.isValid() ) {

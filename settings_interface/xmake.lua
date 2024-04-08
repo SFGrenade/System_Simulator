@@ -5,6 +5,7 @@ target( "Settings-Interface" )
     set_group( "LIBS" )
 
     add_deps( "Logger", { public = true } )
+    add_deps( "Logger-Qt", { public = true } )
     add_deps( "Proto-Messages", { public = true } )
 
     add_includedirs( "include", { public = true } )
@@ -49,6 +50,7 @@ for _, file in ipairs( os.files( "test/*.cpp" ) ) do
         set_group( "TESTS" )
         add_deps(  "Settings-Interface", { public = true } )
         add_deps( "Logger", { public = true } )
+        add_deps( "Logger-Qt", { public = true } )
         add_files( "test/" .. name .. ".cpp" )
         add_tests( "default" )
         add_frameworks( "QtCore", "QtGui", "QtWidgets", "QtTest" )

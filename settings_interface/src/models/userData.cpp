@@ -1,5 +1,7 @@
 #include "SFG/SystemSimulator/SettingsInterface/models/userData.h"
 
+#include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
+
 namespace SFG {
 namespace SystemSimulator {
 namespace SettingsInterface {
@@ -47,7 +49,7 @@ void UserData::set_user_id( uint64_t value ) {
 }
 
 void UserData::set_user_name( QString const& value ) {
-  this->logger_->trace( fmt::runtime( "set_user_name( value = '{:s}' )" ), value.toStdString() );
+  this->logger_->trace( fmt::runtime( "set_user_name( value = '{:qs}' )" ), value );
 
   this->userName_ = value;
   emit this->user_name_changed();
@@ -56,7 +58,7 @@ void UserData::set_user_name( QString const& value ) {
 }
 
 void UserData::set_user_password_hash( QString const& value ) {
-  this->logger_->trace( fmt::runtime( "set_user_password_hash( value = '{:s}' )" ), value.toStdString() );
+  this->logger_->trace( fmt::runtime( "set_user_password_hash( value = '{:qs}' )" ), value );
 
   this->userPasswordHash_ = value;
   emit this->user_password_hash_changed();
