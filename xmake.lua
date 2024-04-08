@@ -5,7 +5,7 @@ set_version( "0.0.1", { build = "%Y%m%d", soname = true } )
 add_rules( "mode.debug", "mode.release", "mode.releasedbg", "mode.minsizerel" )
 add_rules( "plugin.compile_commands.autoupdate", { outputdir = ".vscode" } )
 
-set_languages( "c++11" )
+set_languages( "cxxlatest" )
 
 if is_plat( "windows" ) then
     add_cxflags( "/Zc:__cplusplus" )
