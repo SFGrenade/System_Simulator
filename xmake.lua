@@ -5,9 +5,10 @@ set_version( "0.0.1", { build = "%Y%m%d", soname = true } )
 add_rules( "mode.debug", "mode.release", "mode.releasedbg", "mode.minsizerel" )
 add_rules( "plugin.compile_commands.autoupdate", { outputdir = ".vscode" } )
 
-set_languages( "cxxlatest" )
 
 if is_plat( "windows" ) then
+    set_languages( "cxx17" )
+
     add_cxflags( "/Zc:__cplusplus" )
     add_cxflags( "/Zc:preprocessor" )
 
@@ -17,6 +18,8 @@ if is_plat( "windows" ) then
     -- MDd somehow breaks installation of packages lol
     --set_runtimes(is_mode("debug") and "MDd" or "MD")
     set_runtimes(is_mode("debug") and "MD" or "MD")
+else
+    set_languages( "c++17" )
 end
 
 set_warnings( "allextra" )
