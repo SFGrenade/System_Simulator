@@ -2,8 +2,6 @@ add_requires( "inifile-cpp" )
 
 target( "Configuration" )
     set_kind( "static" )
-    --set_kind( "shared" )
-    --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
     set_default( false )
     set_group( "LIBS" )
@@ -12,7 +10,7 @@ target( "Configuration" )
 
     add_includedirs( "include", { public = true } )
 
-    add_headerfiles( "include/SFG/SystemSimulator/Configuration/*.h" )
+    add_headerfiles( "include/(SFG/SystemSimulator/Configuration/*.h)" )
 
     add_files( "src/*.cpp" )
     remove_files( "src/main.cpp" )

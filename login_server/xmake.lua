@@ -1,7 +1,5 @@
 target( "Login-Server" )
     set_kind( "static" )
-    --set_kind( "shared" )
-    --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
     set_default( false )
     set_group( "LIBS" )
@@ -12,7 +10,7 @@ target( "Login-Server" )
 
     add_includedirs( "include", { public = true } )
 
-    add_headerfiles( "include/SFG/SystemSimulator/LoginServer/*.h" )
+    add_headerfiles( "include/(SFG/SystemSimulator/LoginServer/*.h)" )
 
     add_files( "src/*.cpp" )
     remove_files( "src/main.cpp" )

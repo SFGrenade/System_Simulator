@@ -20,7 +20,7 @@ int main( int argc, char** argv ) {
   SFG::SystemSimulator::LoginServer::LoginServer server;
 
   for( int i = 1; i <= 200; i++ ) {
-    spdlog::info( fmt::runtime( "Loop {:d}" ), i );
+    spdlog::trace( fmt::runtime( "Loop {:d}" ), i );
 
     usernameStream << "A";
     passwordHashStream << "0";

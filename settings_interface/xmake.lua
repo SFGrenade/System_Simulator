@@ -1,7 +1,5 @@
 target( "Settings-Interface" )
     add_rules("qt.static")
-    --add_rules("qt.shared")
-    --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
     set_default( false )
     set_group( "LIBS" )
@@ -11,8 +9,8 @@ target( "Settings-Interface" )
 
     add_includedirs( "include", { public = true } )
 
-    add_headerfiles( "include/SFG/SystemSimulator/SettingsInterface/*.h" )
-    add_headerfiles( "include/SFG/SystemSimulator/SettingsInterface/models/*.h" )
+    add_headerfiles( "include/(SFG/SystemSimulator/SettingsInterface/*.h)" )
+    add_headerfiles( "include/(SFG/SystemSimulator/SettingsInterface/models/*.h)" )
     add_files( "include/SFG/SystemSimulator/SettingsInterface/mainWindow.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
     add_files( "include/SFG/SystemSimulator/SettingsInterface/models/*.h" ) -- add files with Q_OBJECT meta (only for qt.moc)
 

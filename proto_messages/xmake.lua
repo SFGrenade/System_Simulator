@@ -3,8 +3,6 @@ add_requires( "zmqpb master" )
 
 target( "Proto-Messages" )
     set_kind( "static" )
-    --set_kind( "shared" )
-    --add_rules( "utils.symbols.export_all", { export_classes = true } )
 
     set_default( false )
     set_group( "LIBS" )
