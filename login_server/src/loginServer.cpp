@@ -41,7 +41,10 @@ std::pair< bool, std::string > LoginServer::registerUser( std::string const& use
     ret.first = false;
     ret.second = "Password hash not valid";
   } else {
-    this->userMap_[this->userIdCounter_] = User{ .username = username, .passwordHash = passwordHash };
+    User tmpUser{};
+    tmpUser.username = username;
+    tmpUser.passwordHash = passwordHash;
+    this->userMap_[this->userIdCounter_] = tmpUser;
     this->userIdCounter_++;
     ret.first = true;
   }
@@ -68,11 +71,12 @@ std::pair< bool, std::string > LoginServer::loginUser( std::string const& userna
     for( auto const& userStruct : this->userMap_ ) {
       if( userStruct.second.username == username && userStruct.second.passwordHash == passwordHash ) {
         std::string sessionToken = this->generateSessionToken();  // random session token?
-        this->sessionMap_[this->sessionIdCounter_]
-            = Session{ .user_id = this->getUserIdFromUsername( username ),
-                       .sessionToken = sessionToken,
-                       .expirationTimepoint
-                       = std::chrono::system_clock::now() + std::chrono::seconds( this->config_.get< uint32_t >( "Database", "SessionTokenValidTime" ) ) };
+        Session tmpSession{};
+        tmpSession.user_id = this->getUserIdFromUsername( username );
+        tmpSession.sessionToken = sessionToken;
+        tmpSession.expirationTimepoint
+            = std::chrono::system_clock::now() + std::chrono::seconds( this->config_.get< uint32_t >( "Database", "SessionTokenValidTime" ) );
+        this->sessionMap_[this->sessionIdCounter_] = tmpSession;
         this->sessionIdCounter_++;
         ret.first = true;
         ret.second = sessionToken;
