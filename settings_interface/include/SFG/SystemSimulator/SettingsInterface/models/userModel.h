@@ -28,14 +28,14 @@ class UserModel : public QAbstractListModel {
   // Reimplementations
   public:
   QHash< int, QByteArray > roleNames() const override;
-  int rowCount( const QModelIndex &parent = QModelIndex() ) const override;
-  Qt::ItemFlags flags( const QModelIndex &index ) const override;
-  QVariant data( const QModelIndex &index, int role = Qt::DisplayRole ) const override;
+  int rowCount( QModelIndex const &parent = QModelIndex() ) const override;
+  Qt::ItemFlags flags( QModelIndex const &index ) const override;
+  QVariant data( QModelIndex const &index, int role = Qt::DisplayRole ) const override;
   QVariant headerData( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const override;
-  bool setData( const QModelIndex &index, const QVariant &value, int role = Qt::EditRole ) override;
-  bool setHeaderData( int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole ) override;
-  bool insertRows( int row, int count, const QModelIndex &parent = QModelIndex() ) override;
-  bool removeRows( int row, int count, const QModelIndex &parent = QModelIndex() ) override;
+  bool setData( QModelIndex const &index, QVariant const &value, int role = Qt::EditRole ) override;
+  bool setHeaderData( int section, Qt::Orientation orientation, QVariant const &value, int role = Qt::EditRole ) override;
+  bool insertRows( int row, int count, QModelIndex const &parent = QModelIndex() ) override;
+  bool removeRows( int row, int count, QModelIndex const &parent = QModelIndex() ) override;
 
   private:
   SFG::SystemSimulator::Logger::spdlogger logger_;

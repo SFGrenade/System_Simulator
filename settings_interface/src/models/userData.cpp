@@ -38,10 +38,10 @@ QString UserData::get_user_password_hash( void ) {
 }
 
 void UserData::set_user_id( uint64_t value ) {
-  this->logger_->trace( fmt::runtime( "set_user_id( value = '{:d}' )" ), value );
+  this->logger_->trace( fmt::runtime( "set_user_id( value = {:d} )" ), value );
 
   this->userId_ = value;
-  emit user_id_changed();
+  emit this->user_id_changed();
 
   this->logger_->trace( fmt::runtime( "set_user_id()~" ) );
 }
@@ -50,7 +50,7 @@ void UserData::set_user_name( QString const& value ) {
   this->logger_->trace( fmt::runtime( "set_user_name( value = '{:s}' )" ), value.toStdString() );
 
   this->userName_ = value;
-  emit user_name_changed();
+  emit this->user_name_changed();
 
   this->logger_->trace( fmt::runtime( "set_user_name()~" ) );
 }
@@ -59,7 +59,7 @@ void UserData::set_user_password_hash( QString const& value ) {
   this->logger_->trace( fmt::runtime( "set_user_password_hash( value = '{:s}' )" ), value.toStdString() );
 
   this->userPasswordHash_ = value;
-  emit user_password_hash_changed();
+  emit this->user_password_hash_changed();
 
   this->logger_->trace( fmt::runtime( "set_user_password_hash()~" ) );
 }

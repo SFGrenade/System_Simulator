@@ -47,8 +47,12 @@ int main( int argc, char** argv ) {
 
   userModel->insertRow( 0 );
   userModel->setData( userModel->index( 0 ), 1ULL, static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserId ) );
-  userModel->setData( userModel->index( 0 ), "Username", static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserName ) );
-  userModel->setData( userModel->index( 0 ), "Password", static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserPasswordHash ) );
+  userModel->setData( userModel->index( 0 ),
+                      QVariant::fromValue( QString::fromStdString( std::string( "Username" ) ) ),
+                      static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserName ) );
+  userModel->setData( userModel->index( 0 ),
+                      QVariant::fromValue( QString::fromStdString( std::string( "Password" ) ) ),
+                      static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserPasswordHash ) );
 
   delete modelTester_UserModel;
   delete userModel;

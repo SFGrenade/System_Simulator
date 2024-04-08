@@ -27,7 +27,7 @@ QHash< int, QByteArray > UserModel::roleNames() const {
   return ret;
 }
 
-int UserModel::rowCount( const QModelIndex &parent ) const {
+int UserModel::rowCount( QModelIndex const &parent ) const {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
                                            fmt::format( fmt::runtime( "rowCount( parent: ({:d}, {:d}) )" ), parent.row(), parent.column() ),
                                            fmt::format( fmt::runtime( "rowCount()~" ) ) );
@@ -38,7 +38,7 @@ int UserModel::rowCount( const QModelIndex &parent ) const {
   return userList_.size();
 }
 
-Qt::ItemFlags UserModel::flags( const QModelIndex &index ) const {
+Qt::ItemFlags UserModel::flags( QModelIndex const &index ) const {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
                                            fmt::format( fmt::runtime( "flags( index: ({:d}, {:d}) )" ), index.row(), index.column() ),
                                            fmt::format( fmt::runtime( "flags()~" ) ) );
@@ -58,7 +58,7 @@ Qt::ItemFlags UserModel::flags( const QModelIndex &index ) const {
   return Qt::ItemFlag::ItemIsSelectable | Qt::ItemFlag::ItemIsEditable | Qt::ItemFlag::ItemIsEnabled | Qt::ItemFlag::ItemNeverHasChildren;
 }
 
-QVariant UserModel::data( const QModelIndex &index, int role ) const {
+QVariant UserModel::data( QModelIndex const &index, int role ) const {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
                                            fmt::format( fmt::runtime( "data( index: ({:d}, {:d}), role: {:d} )" ), index.row(), index.column(), role ),
                                            fmt::format( fmt::runtime( "data()~" ) ) );
@@ -116,12 +116,11 @@ QVariant UserModel::headerData( int section, Qt::Orientation orientation, int ro
   }
 }
 
-bool UserModel::setData( const QModelIndex &index, const QVariant &value, int role ) {
+bool UserModel::setData( QModelIndex const &index, QVariant const &value, int role ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "setData( index: ({:d}, {:d}), value: '{:s}', role: {:d} )" ),
+                                           fmt::format( fmt::runtime( "setData( index: ({:d}, {:d}), value: QVariant, role: {:d} )" ),
                                                         index.row(),
                                                         index.column(),
-                                                        value.toString().toStdString(),
                                                         role ),
                                            fmt::format( fmt::runtime( "setData()~" ) ) );
 
@@ -139,22 +138,22 @@ bool UserModel::setData( const QModelIndex &index, const QVariant &value, int ro
   }
   switch( role ) {
     case static_cast< int >( UserModel::Roles::UserId ): {
-      if( std::string( value.typeName() ) != std::string( QVariant::fromValue( 0ULL ).typeName() ) )
-        return false;
+      // if( std::string( value.typeName() ) != std::string( QVariant::fromValue( 0ULL ).typeName() ) )
+      //   return false;
       userList_.at( index.row() )->set_user_id( value.toULongLong() );
       emit this->dataChanged( index, index, QVector< int >{ role } );
       return true;
     }
     case static_cast< int >( UserModel::Roles::UserName ): {
-      if( std::string( value.typeName() ) != std::string( QVariant::fromValue( QString( "" ) ).typeName() ) )
-        return false;
+      // if( std::string( value.typeName() ) != std::string( QVariant::fromValue( QString( "" ) ).typeName() ) )
+      //   return false;
       userList_.at( index.row() )->set_user_name( value.toString() );
       emit this->dataChanged( index, index, QVector< int >{ role } );
       return true;
     }
     case static_cast< int >( UserModel::Roles::UserPasswordHash ): {
-      if( std::string( value.typeName() ) != std::string( QVariant::fromValue( QString( "" ) ).typeName() ) )
-        return false;
+      // if( std::string( value.typeName() ) != std::string( QVariant::fromValue( QString( "" ) ).typeName() ) )
+      //   return false;
       userList_.at( index.row() )->set_user_password_hash( value.toString() );
       emit this->dataChanged( index, index, QVector< int >{ role } );
       return true;
@@ -164,12 +163,11 @@ bool UserModel::setData( const QModelIndex &index, const QVariant &value, int ro
   }
 }
 
-bool UserModel::setHeaderData( int section, Qt::Orientation orientation, const QVariant &value, int role ) {
+bool UserModel::setHeaderData( int section, Qt::Orientation orientation, QVariant const &value, int role ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "setHeaderData( section: {:d}, orientation: {:d}, value: '{:s}', role: {:d} )" ),
+                                           fmt::format( fmt::runtime( "setHeaderData( section: {:d}, orientation: {:d}, value: QVariant, role: {:d} )" ),
                                                         section,
                                                         static_cast< int >( orientation ),
-                                                        value.toString().toStdString(),
                                                         role ),
                                            fmt::format( fmt::runtime( "setHeaderData()~" ) ) );
 
@@ -177,7 +175,7 @@ bool UserModel::setHeaderData( int section, Qt::Orientation orientation, const Q
   return false;
 }
 
-bool UserModel::insertRows( int row, int count, const QModelIndex &parent ) {
+bool UserModel::insertRows( int row, int count, QModelIndex const &parent ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
                                            fmt::format( fmt::runtime( "insertRows( row: {:d}, count: {:d}, parent: ({:d}, {:d}) )" ),
                                                         row,
@@ -203,7 +201,7 @@ bool UserModel::insertRows( int row, int count, const QModelIndex &parent ) {
   return true;
 }
 
-bool UserModel::removeRows( int row, int count, const QModelIndex &parent ) {
+bool UserModel::removeRows( int row, int count, QModelIndex const &parent ) {
   SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
                                            fmt::format( fmt::runtime( "removeRows( row: {:d}, count: {:d}, parent: ({:d}, {:d}) )" ),
                                                         row,
