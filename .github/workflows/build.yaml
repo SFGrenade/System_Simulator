@@ -18,11 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { runner: windows-latest, os: windows, qt-os: windows, qt-arch: win64_msvc2019_64, arch: x64,    archive_ext: .zip }
-        - { runner: ubuntu-latest,  os: linux,   qt-os: linux,   qt-arch: gcc_64,            arch: x86_64, archive_ext: .tar.gz }
-        - { runner: macos-latest,   os: macos,   qt-os: mac,     qt-arch: clang_64,          arch: x86_64, archive_ext: .tar.gz }
-        #- { runner: macos-latest,   os: macos,   arch: arm64,  archive_ext: .tar.gz }
-        mode: [debug, releasedbg]
+        - { runner: windows-latest, os: windows, arch: x64,    archive_ext: .zip,    vs_runtime: MT }
+        - { runner: windows-latest, os: windows, arch: x64,    archive_ext: .zip,    vs_runtime: MD }
+        - { runner: ubuntu-latest,  os: linux,   arch: x86_64, archive_ext: .tar.gz, vs_runtime: none }
+        - { runner: macos-latest,   os: macos,   arch: x86_64, archive_ext: .tar.gz, vs_runtime: none }
+        #- { runner: macos-latest,   os: macos,   arch: arm64,  archive_ext: .tar.gz, vs_runtime: none }
+        mode: [ debug, release, releasedbg, minsizerel ]
+        libkind: [ shared, static ]
 
     runs-on: ${{ matrix.platform.runner }}
 
@@ -80,10 +82,15 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
-        key: ${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ matrix.mode }}-${{ steps.dep_hash.outputs.hash }}-W${{ steps.cache_key.outputs.key }}
+        key: ${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ matrix.mode }}-${{ matrix.libkind }}-${{ matrix.platform.vs_runtime }}-${{ steps.dep_hash.outputs.hash }}-W${{ steps.cache_key.outputs.key }}
 
-    - name: Configure xmake and install dependencies
-      run: xmake config -vD --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --yes --policies=package.precompiled:n
+    - name: Configure xmake and install dependencies (Unix)
+      if: ${{ matrix.platform.os != 'windows' }}
+      run: xmake config -vD --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.libkind }} --yes --policies=package.precompiled:n
+
+    - name: Configure xmake and install dependencies (Windows)
+      if: ${{ matrix.platform.os == 'windows' }}
+      run: xmake config -vD --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.libkind }} --vs_runtime=${{ matrix.platform.vs_runtime }} --yes --policies=package.precompiled:n
 
     # Save dependencies
     - name: Save cached xmake dependencies
@@ -108,20 +115,9 @@ jobs:
         xmake run -vD Settings-Interface-Test
 
     - name: Install
-      if: ${{ matrix.mode == 'releasedbg' || matrix.mode == 'release' }}
-      run: |
-        xmake install -vDo dest/
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          mv ./dest/lib/*.so ./dest/bin/ || true
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          mv ./dest/lib/*.dylib ./dest/bin/ || true
-        fi
-        rm -rf dest/include/
-        rm -rf dest/lib/
-      shell: bash
+      run: xmake install -vDo dest/ --group=EXES
     
     - name: Archive result
-      if: ${{ matrix.mode == 'releasedbg' || matrix.mode == 'release' }}
       uses: ihiroky/archive-action@v1
       with:
         root_dir: dest
@@ -129,7 +125,6 @@ jobs:
         verbose: true
 
     - name: Compute checksum of archive
-      if: ${{ matrix.mode == 'releasedbg' || matrix.mode == 'release' }}
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
           sha256sum -b "$OUTPUT_FILE" > "$OUTPUT_FILE.sha256"
@@ -141,7 +136,7 @@ jobs:
     # Release tags (for tags)
     - name: Upload binaries to release (Tag)
       uses: svenstaro/upload-release-action@v2
-      if: ${{ startsWith(github.event.ref, 'refs/tags/') && ( matrix.mode == 'releasedbg' || matrix.mode == 'release' ) }}
+      if: ${{ startsWith(github.event.ref, 'refs/tags/') }}
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ env.OUTPUT_FILE }}
@@ -151,7 +146,7 @@ jobs:
 
     - name: Upload checksum to release (Tag)
       uses: svenstaro/upload-release-action@v2
-      if: ${{ startsWith(github.event.ref, 'refs/tags/') && ( matrix.mode == 'releasedbg' || matrix.mode == 'release' ) }}
+      if: ${{ startsWith(github.event.ref, 'refs/tags/') }}
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ env.OUTPUT_FILE }}.sha256
