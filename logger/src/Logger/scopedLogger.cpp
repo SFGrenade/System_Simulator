@@ -1,4 +1,4 @@
-#include "SFG/SystemSimulator/Logger/ScopedLogger.h"
+#include "SFG/SystemSimulator/Logger/scopedLogger.h"
 
 namespace SFG {
 namespace SystemSimulator {
