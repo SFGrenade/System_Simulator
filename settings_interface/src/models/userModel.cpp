@@ -1,6 +1,7 @@
 #include "SFG/SystemSimulator/SettingsInterface/models/userModel.h"
 
 #include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
+#include <SFG/SystemSimulator/Logger/scopedLogger.h>
 
 namespace SFG {
 namespace SystemSimulator {
@@ -19,7 +20,7 @@ UserModel::~UserModel() {
 }
 
 QHash< int, QByteArray > UserModel::roleNames() const {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_, fmt::format( fmt::runtime( "roleNames()" ) ), fmt::format( fmt::runtime( "roleNames()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_, fmt::format( fmt::runtime( "roleNames()" ) ), fmt::format( fmt::runtime( "roleNames()~" ) ) );
 
   QHash< int, QByteArray > ret{
       { static_cast< int >( SFG::SystemSimulator::SettingsInterface::UserModel::Roles::UserId ), "userId" },
@@ -30,9 +31,9 @@ QHash< int, QByteArray > UserModel::roleNames() const {
 }
 
 int UserModel::rowCount( QModelIndex const &parent ) const {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "rowCount( parent: {:qmi} )" ), parent ),
-                                           fmt::format( fmt::runtime( "rowCount()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "rowCount( parent: {:qmi} )" ), parent ),
+                                              fmt::format( fmt::runtime( "rowCount()~" ) ) );
 
   if( parent.isValid() ) {
     return 0;
@@ -41,9 +42,9 @@ int UserModel::rowCount( QModelIndex const &parent ) const {
 }
 
 Qt::ItemFlags UserModel::flags( QModelIndex const &index ) const {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "flags( index: {:qmi} )" ), index ),
-                                           fmt::format( fmt::runtime( "flags()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "flags( index: {:qmi} )" ), index ),
+                                              fmt::format( fmt::runtime( "flags()~" ) ) );
 
   if( !index.isValid() ) {
     return Qt::ItemFlag::NoItemFlags;
@@ -61,9 +62,9 @@ Qt::ItemFlags UserModel::flags( QModelIndex const &index ) const {
 }
 
 QVariant UserModel::data( QModelIndex const &index, int role ) const {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "data( index: {:qmi}, role: {:d} )" ), index, role ),
-                                           fmt::format( fmt::runtime( "data()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "data( index: {:qmi}, role: {:d} )" ), index, role ),
+                                              fmt::format( fmt::runtime( "data()~" ) ) );
 
   if( !index.isValid() ) {
     return QVariant();
@@ -90,12 +91,12 @@ QVariant UserModel::data( QModelIndex const &index, int role ) const {
 }
 
 QVariant UserModel::headerData( int section, Qt::Orientation orientation, int role ) const {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "headerData( section: {:d}, orientation: {:d}, role: {:d} )" ),
-                                                        section,
-                                                        static_cast< int >( orientation ),
-                                                        role ),
-                                           fmt::format( fmt::runtime( "headerData()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "headerData( section: {:d}, orientation: {:d}, role: {:d} )" ),
+                                                           section,
+                                                           static_cast< int >( orientation ),
+                                                           role ),
+                                              fmt::format( fmt::runtime( "headerData()~" ) ) );
 
   if( orientation == Qt::Orientation::Horizontal && section != 0 ) {
     return QVariant();
@@ -119,9 +120,12 @@ QVariant UserModel::headerData( int section, Qt::Orientation orientation, int ro
 }
 
 bool UserModel::setData( QModelIndex const &index, QVariant const &value, int role ) {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "setData( index: {:qmi}, value: '{:qs}', role: {:d} )" ), index, value.toString(), role ),
-                                           fmt::format( fmt::runtime( "setData()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "setData( index: {:qmi}, value: '{:qs}', role: {:d} )" ),
+                                                           index,
+                                                           value.toString(),
+                                                           role ),
+                                              fmt::format( fmt::runtime( "setData()~" ) ) );
 
   if( !index.isValid() ) {
     return false;
@@ -163,22 +167,22 @@ bool UserModel::setData( QModelIndex const &index, QVariant const &value, int ro
 }
 
 bool UserModel::setHeaderData( int section, Qt::Orientation orientation, QVariant const &value, int role ) {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "setHeaderData( section: {:d}, orientation: {:d}, value: '{:qs}', role: {:d} )" ),
-                                                        section,
-                                                        static_cast< int >( orientation ),
-                                                        value.toString(),
-                                                        role ),
-                                           fmt::format( fmt::runtime( "setHeaderData()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "setHeaderData( section: {:d}, orientation: {:d}, value: '{:qs}', role: {:d} )" ),
+                                                           section,
+                                                           static_cast< int >( orientation ),
+                                                           value.toString(),
+                                                           role ),
+                                              fmt::format( fmt::runtime( "setHeaderData()~" ) ) );
 
   // No setting header data
   return false;
 }
 
 bool UserModel::insertRows( int row, int count, QModelIndex const &parent ) {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "insertRows( row: {:d}, count: {:d}, parent: {:qmi} )" ), row, count, parent ),
-                                           fmt::format( fmt::runtime( "insertRows()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "insertRows( row: {:d}, count: {:d}, parent: {:qmi} )" ), row, count, parent ),
+                                              fmt::format( fmt::runtime( "insertRows()~" ) ) );
 
   if( parent.isValid() ) {
     return false;
@@ -198,9 +202,9 @@ bool UserModel::insertRows( int row, int count, QModelIndex const &parent ) {
 }
 
 bool UserModel::removeRows( int row, int count, QModelIndex const &parent ) {
-  SFG::SystemSimulator::Logger::ScopedLog( this->logger_,
-                                           fmt::format( fmt::runtime( "removeRows( row: {:d}, count: {:d}, parent: {:qmi} )" ), row, count, parent ),
-                                           fmt::format( fmt::runtime( "removeRows()~" ) ) );
+  SFG::SystemSimulator::Logger::ScopedLogger( this->logger_,
+                                              fmt::format( fmt::runtime( "removeRows( row: {:d}, count: {:d}, parent: {:qmi} )" ), row, count, parent ),
+                                              fmt::format( fmt::runtime( "removeRows()~" ) ) );
 
   if( parent.isValid() ) {
     return false;

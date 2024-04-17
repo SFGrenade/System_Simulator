@@ -16,8 +16,8 @@ if is_plat( "windows" ) then
 
     -- MD required because Qt
     -- MDd somehow breaks installation of packages lol
-    --set_runtimes(is_mode("debug") and "MDd" or "MD")
-    set_runtimes(is_mode("debug") and "MD" or "MD")
+    --set_runtimes( is_mode( "debug" ) and "MDd" or "MD" )
+    set_runtimes( is_mode( "debug" ) and "MDd" or "MD" )
 else
     set_languages( "c++17" )
 end
@@ -27,12 +27,15 @@ set_warnings( "allextra" )
 -- maybe this helps for the ci?
 set_policy("build.across_targets_in_parallel", false)
 
+-- test framework, gonna be added to each test
+add_requires( "gtest" )
+
 add_requireconfs( "*", { configs = { shared = get_config( "kind" ) == "shared" } } )
 
 includes( "audio_interface" )
 includes( "configuration" )
 includes( "logger" )
 includes( "login_server" )
-includes( "proto_messages" )
+includes( "network_messages" )
 includes( "recording_server" )
 includes( "settings_interface" )

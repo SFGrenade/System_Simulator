@@ -1,21 +1,18 @@
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-#include <database.pb.h>
+#include <gtest/gtest.h>
 #include <string>
+#include <vector>
 
 int main( int argc, char** argv ) {
-  SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/protoMessageSerialize.log", false );
+  SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/login_server_test.log", false );
   std::vector< std::string > args;
   for( int i = 0; i < argc; i++ ) {
     args.push_back( std::string( argv[i] ) );
   }
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
-  int retVal = 0;
-  SFG::SystemSimulator::ProtoMessages::MsgContent myMessage;
-  myMessage.set_username( "set_username" );
-  myMessage.set_msgtext( "set_msgtext" );
-  std::string serialized = myMessage.SerializeAsString();
-  spdlog::trace( fmt::runtime( "serialized = {:s}" ), serialized );
+  testing::InitGoogleTest( &argc, argv );
+  int retVal = RUN_ALL_TESTS();
 
   spdlog::trace( fmt::runtime( "~main" ) );
   SFG::SystemSimulator::Logger::LoggerFactory::deinit();

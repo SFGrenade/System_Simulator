@@ -7,7 +7,6 @@
 #include <map>
 #include <random>
 #include <string>
-#include <zmqPb/reqRep.hpp>
 
 namespace SFG {
 namespace SystemSimulator {

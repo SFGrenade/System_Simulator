@@ -1,18 +1,8 @@
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-#include <string>
-#include <vector>
+#include <SFG/SystemSimulator/Logger/scopedLogger.h>
+#include <gtest/gtest.h>
 
-int main( int argc, char** argv ) {
-  SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/loggerTest.log", false );
-  std::vector< std::string > args;
-  for( int i = 0; i < argc; i++ ) {
-    args.push_back( std::string( argv[i] ) );
-  }
-  spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
-
-  { SFG::SystemSimulator::Logger::ScopedLog( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "ScopedLog" ), "Entry", "Exit" ); }
-
-  spdlog::trace( fmt::runtime( "~main" ) );
-  SFG::SystemSimulator::Logger::LoggerFactory::deinit();
-  return 0;
+TEST( Logger, ScopedLogger ) {
+  { SFG::SystemSimulator::Logger::ScopedLogger( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "ScopedLogger" ), "Entry", "Exit" ); }
+  EXPECT_TRUE( true );
 }

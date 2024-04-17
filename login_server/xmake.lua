@@ -6,7 +6,7 @@ target( "Login-Server" )
 
     add_deps( "Configuration", { public = true } )
     add_deps( "Logger", { public = true } )
-    add_deps( "Proto-Messages", { public = true } )
+    add_deps( "Network-Messages", { public = true } )
 
     add_includedirs( "include", { public = true } )
 
@@ -34,14 +34,14 @@ target( "Login-Server-Exe" )
         os.cp( path.join( "$(scriptdir)", "config" ), target.installdir( target ) )
     end )
 
-for _, file in ipairs( os.files( "test/*.cpp" ) ) do
-    local name = path.basename( file )
-    target( name )
-        set_kind( "binary" )
-        set_default( false )
-        set_group( "TESTS" )
-        add_deps(  "Login-Server", { public = true } )
-        add_deps( "Logger", { public = true } )
-        add_files( "test/" .. name .. ".cpp" )
-        add_tests( "default" )
-end
+target( "Login-Server-Test" )
+    set_kind( "binary" )
+
+    set_default( false )
+    set_group( "TESTS" )
+
+    add_deps( "Login-Server", { public = true } )
+    add_deps( "Logger", { public = true } )
+    add_packages( "gtest", { public = true } )
+
+    add_files( "test/*.cpp" )

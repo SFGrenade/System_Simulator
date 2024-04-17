@@ -1,12 +1,12 @@
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-#include <audio.pb.h>
+// #include <audio.pb.h>  // todo
 #include <string>
 #include <vector>
 
 #include "SFG/SystemSimulator/RecordingServer/netConnector.h"
 #include "SFG/SystemSimulator/RecordingServer/recordingServer.h"
 
-namespace SSP = SFG::SystemSimulator::ProtoMessages;
+// namespace SSP = SFG::SystemSimulator::ProtoMessages;  // todo
 
 int main( int argc, char** argv ) {
   SFG::SystemSimulator::Logger::LoggerFactory::init( "RecordingServerLog.log" );
@@ -20,28 +20,29 @@ int main( int argc, char** argv ) {
   SFG::SystemSimulator::RecordingServer::RecordingServer recordingServer;
   SFG::SystemSimulator::RecordingServer::NetConnector netConnector;
 
-  netConnector->subscribe( new SSP::AudioFormatInformation(), [&]( google::protobuf::Message const& req ) {
-    SSP::AudioFormatInformation const& actualReq = dynamic_cast< SSP::AudioFormatInformation const& >( req );
-
-    recordingServer.setupAudioGenerator( actualReq.audio_generator_id(),
-                                         static_cast< uint16_t >( actualReq.channels() ),
-                                         static_cast< uint32_t >( actualReq.sample_rate() ),
-                                         static_cast< uint16_t >( actualReq.bits_per_sample() ) );
-  } );
-  netConnector->subscribe( new SSP::AudioFrame(), [&]( google::protobuf::Message const& req ) {
-    SSP::AudioFrame const& actualReq = dynamic_cast< SSP::AudioFrame const& >( req );
-
-    std::list< char > actualData;
-    for( char byte : actualReq.audio_data() ) {
-      actualData.push_back( byte );
-    }
-
-    recordingServer.streamAudioFrame( actualReq.audio_generator_id(), actualData );
-  } );
+  // // todo
+  // netConnector->subscribe( new SSP::AudioFormatInformation(), [&]( google::protobuf::Message const& req ) {
+  //   SSP::AudioFormatInformation const& actualReq = dynamic_cast< SSP::AudioFormatInformation const& >( req );
+  //
+  //   recordingServer.setupAudioGenerator( actualReq.audio_generator_id(),
+  //                                        static_cast< uint16_t >( actualReq.channels() ),
+  //                                        static_cast< uint32_t >( actualReq.sample_rate() ),
+  //                                        static_cast< uint16_t >( actualReq.bits_per_sample() ) );
+  // } );
+  // netConnector->subscribe( new SSP::AudioFrame(), [&]( google::protobuf::Message const& req ) {
+  //   SSP::AudioFrame const& actualReq = dynamic_cast< SSP::AudioFrame const& >( req );
+  //
+  //   std::list< char > actualData;
+  //   for( char byte : actualReq.audio_data() ) {
+  //     actualData.push_back( byte );
+  //   }
+  //
+  //   recordingServer.streamAudioFrame( actualReq.audio_generator_id(), actualData );
+  // } );
 
   while( 1 ) {
     try {
-      netConnector->run();
+      // netConnector->run();
     } catch( std::exception const& e ) {
       spdlog::error( fmt::runtime( "error calling netConnector.run: {:s}" ), e.what() );
     }

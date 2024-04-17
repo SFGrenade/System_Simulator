@@ -1,7 +1,9 @@
 #include "SFG/SystemSimulator/SettingsInterface/mainWindow.h"
 
 #include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
-#include <database.pb.h>
+// #include <database.pb.h>  // todo
+
+// namespace SSP = SFG::SystemSimulator::ProtoMessages;  // todo
 
 namespace SFG {
 namespace SystemSimulator {
@@ -36,12 +38,13 @@ MainWindow::~MainWindow() {
 void MainWindow::buttonClicked() {
   logger_->trace( fmt::runtime( "buttonClicked()" ) );
 
-  SFG::SystemSimulator::ProtoMessages::MsgContent myMessage;
-  myMessage.set_username( "set_username" );
-  myMessage.set_msgtext( "set_msgtext" );
-  logger_->trace( fmt::runtime( "buttonClicked - myMessage.username: '{:s}'" ), myMessage.username() );
-  logger_->trace( fmt::runtime( "buttonClicked - myMessage.msgtext: '{:s}'" ), myMessage.msgtext() );
-  logger_->trace( fmt::runtime( "buttonClicked - myMessage.SerializeAsString: '{:s}'" ), myMessage.SerializeAsString() );
+  // // todo
+  // SFG::SystemSimulator::ProtoMessages::MsgContent myMessage;
+  // myMessage.set_username( "set_username" );
+  // myMessage.set_msgtext( "set_msgtext" );
+  // logger_->trace( fmt::runtime( "buttonClicked - myMessage.username: '{:s}'" ), myMessage.username() );
+  // logger_->trace( fmt::runtime( "buttonClicked - myMessage.msgtext: '{:s}'" ), myMessage.msgtext() );
+  // logger_->trace( fmt::runtime( "buttonClicked - myMessage.SerializeAsString: '{:s}'" ), myMessage.SerializeAsString() );
 
   logger_->trace( fmt::runtime( "buttonClicked()~" ) );
 }

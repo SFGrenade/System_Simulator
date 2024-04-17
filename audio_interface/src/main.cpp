@@ -1,6 +1,6 @@
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-#include <audio.pb.h>
+// #include <audio.pb.h>  // todo
 #include <chrono>
 #include <mutex>
 #include <queue>
@@ -11,7 +11,7 @@
 #include "SFG/SystemSimulator/AudioInterface/_portaudio.h"
 #include "SFG/SystemSimulator/AudioInterface/netConnector.h"
 
-namespace SSP = SFG::SystemSimulator::ProtoMessages;
+// namespace SSP = SFG::SystemSimulator::ProtoMessages;  // todo
 
 struct MySettingsStruct {
   float outputMultiplier;
@@ -53,16 +53,16 @@ int audioMonitoringCallback( const void *inputBuffer,
   }
 
   char *audioData = new char[framesPerBuffer * 2];
-  SSP::AudioFrame *rep = new SSP::AudioFrame();
+  // SSP::AudioFrame *rep = new SSP::AudioFrame();  // todo
   for( i = 0; i < framesPerBuffer; i++ ) {
     audioData[( 2 * i ) + 0] = ( ( *in ) >> 0 ) & 0xFF;
     audioData[( 2 * i ) + 1] = ( ( *in ) >> 8 ) & 0xFF;
     *out++ = *in++;
   }
-  rep->set_audio_generator_id( "AudioInterface" );
-  rep->set_audio_data( std::string( reinterpret_cast< char * >( audioData ), framesPerBuffer * 2 ) );
+  // rep->set_audio_generator_id( "AudioInterface" );  // todo
+  // rep->set_audio_data( std::string( reinterpret_cast< char * >( audioData ), framesPerBuffer * 2 ) );  // todo
   delete[] audioData;
-  ( *data->netConnector )->sendMessage( rep );
+  // ( *data->netConnector )->sendMessage( rep );  // todo
 
   return PortAudio::PaStreamCallbackResult::paContinue;
 }
@@ -83,7 +83,7 @@ int main( int argc, char **argv ) {
   std::thread networkThread(
       []( SFG::SystemSimulator::AudioInterface::NetConnector *netConnectorPtr, bool *donePtr ) {
         while( !( *donePtr ) ) {
-          ( *netConnectorPtr )->run();
+          // ( *netConnectorPtr )->run();  // todo
         }
       },
       &netConnector,
@@ -159,33 +159,33 @@ int main( int argc, char **argv ) {
     myData.flags = static_cast< PortAudio::PaStreamFlags >( config.get< unsigned long >( "Input", "StreamFlags" ) );
     myData.netConnector = &netConnector;
 
-    SSP::AudioFormatInformation *rep = new SSP::AudioFormatInformation();
-    rep->set_audio_generator_id( "AudioInterface" );
-    rep->set_channels( myData.inputSettings.channelCount );
-    rep->set_sample_rate( myData.sampleRate );
+    // SSP::AudioFormatInformation *rep = new SSP::AudioFormatInformation();  // todo
+    // rep->set_audio_generator_id( "AudioInterface" );  // todo
+    // rep->set_channels( myData.inputSettings.channelCount );  // todo
+    // rep->set_sample_rate( myData.sampleRate );  // todo
     switch( myData.inputSettings.sampleFormat ) {
       case 0x00000001:
-        rep->set_bits_per_sample( 32 );
+        // rep->set_bits_per_sample( 32 );  // todo
         break;
       case 0x00000002:
-        rep->set_bits_per_sample( 32 );
+        // rep->set_bits_per_sample( 32 );  // todo
         break;
       case 0x00000004:
-        rep->set_bits_per_sample( 24 );
+        // rep->set_bits_per_sample( 24 );  // todo
         break;
       case 0x00000008:
-        rep->set_bits_per_sample( 16 );
+        // rep->set_bits_per_sample( 16 );  // todo
         break;
       case 0x00000010:
-        rep->set_bits_per_sample( 8 );
+        // rep->set_bits_per_sample( 8 );  // todo
         break;
       case 0x00000020:
-        rep->set_bits_per_sample( 8 );
+        // rep->set_bits_per_sample( 8 );  // todo
         break;
       default:
         break;
     }
-    netConnector->sendMessage( rep );
+    // netConnector->sendMessage( rep );  // todo
 
     if( ( err = PortAudio::Pa_OpenStream( &myData.portAudioStream,
                                           &myData.inputSettings,

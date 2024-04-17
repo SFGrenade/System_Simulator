@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
 
-TEST( AudioInterface, Example ) {
+TEST( NetworkMessages, Example ) {
   EXPECT_TRUE( true );
 }

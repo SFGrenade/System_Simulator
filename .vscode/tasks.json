@@ -72,9 +72,59 @@
       }
     },
     {
-      "label": "XMake test",
+      "label": "XMake test Audio-Interface",
       "type": "shell",
-      "command": "xmake test -vD >_build_logs\\05_test.txt 2>&1",
+      "command": "xmake run -vD Audio-Interface-Test >_build_logs\\05_test_audio_interface.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test Configuration",
+      "type": "shell",
+      "command": "xmake run -vD Configuration-Test >_build_logs\\05_test_configuration.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test Logger",
+      "type": "shell",
+      "command": "xmake run -vD Logger-Test >_build_logs\\05_test_logger.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test Login-Server",
+      "type": "shell",
+      "command": "xmake run -vD Login-Server-Test >_build_logs\\05_test_login_server.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test Network-Messages",
+      "type": "shell",
+      "command": "xmake run -vD Network-Messages-Test >_build_logs\\05_test_network_messages.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test Recording-Server",
+      "type": "shell",
+      "command": "xmake run -vD Recording-Server-Test >_build_logs\\05_test_recording_server.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test Settings-Interface",
+      "type": "shell",
+      "command": "xmake run -vD Settings-Interface-Test >_build_logs\\05_test_settings_interface.txt 2>&1",
+      "problemMatcher": []
+    },
+    {
+      "label": "XMake test",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "XMake test Audio-Interface",
+        "XMake test Configuration",
+        "XMake test Logger",
+        "XMake test Login-Server",
+        "XMake test Network-Messages",
+        "XMake test Recording-Server",
+        "XMake test Settings-Interface"
+      ],
       "problemMatcher": []
     },
     {

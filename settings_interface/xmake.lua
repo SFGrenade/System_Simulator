@@ -6,7 +6,7 @@ target( "Settings-Interface" )
 
     add_deps( "Logger", { public = true } )
     add_deps( "Logger-Qt", { public = true } )
-    add_deps( "Proto-Messages", { public = true } )
+    add_deps( "Network-Messages", { public = true } )
 
     add_includedirs( "include", { public = true } )
 
@@ -42,16 +42,16 @@ target( "Settings-Interface-Exe" )
         os.cp( path.join( "$(scriptdir)", "config" ), target.installdir( target ) )
     end )
 
-for _, file in ipairs( os.files( "test/*.cpp" ) ) do
-    local name = path.basename( file )
-    target( name )
-        add_rules("qt.widgetapp")
-        set_default( false )
-        set_group( "TESTS" )
-        add_deps(  "Settings-Interface", { public = true } )
-        add_deps( "Logger", { public = true } )
-        add_deps( "Logger-Qt", { public = true } )
-        add_files( "test/" .. name .. ".cpp" )
-        add_tests( "default" )
-        add_frameworks( "QtCore", "QtGui", "QtWidgets", "QtTest" )
-end
+target( "Settings-Interface-Test" )
+    add_rules("qt.console")
+
+    set_default( false )
+    set_group( "TESTS" )
+
+    add_deps( "Settings-Interface", { public = true } )
+    add_deps( "Logger", { public = true } )
+    add_deps( "Logger-Qt", { public = true } )
+    add_packages( "gtest", { public = true } )
+
+    add_files( "test/*.cpp" )
+    add_frameworks( "QtCore", "QtGui", "QtWidgets", "QtTest" )
