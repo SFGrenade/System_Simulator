@@ -34,7 +34,7 @@ target( "Logger-Qt" )
     add_files( "src/Logger-Qt/*.cpp" )
     remove_files( "src/main.cpp" )
 
-    add_frameworks( "QtCore" )
+    --add_frameworks( "QtCore" )
 
 target( "Logger-Test" )
     set_kind( "binary" )
