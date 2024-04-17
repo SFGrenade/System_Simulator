@@ -12,9 +12,12 @@ target( "Network-Messages" )
     add_packages( "boost", { public = true } )
     add_packages( "nng", { public = true } )
 
-    --add_rules( "protobuf.cpp" )
+    add_includedirs( "include", { public = true } )
 
-    --add_files( "messages/*.proto", { proto_public = true } )
+    add_headerfiles( "include/(SFG/SystemSimulator/NetworkMessages/*.h)" )
+
+    add_files( "src/*.cpp" )
+    remove_files( "src/main.cpp" )
 
 target( "Network-Messages-Test" )
     set_kind( "binary" )
