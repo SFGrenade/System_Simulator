@@ -80,11 +80,11 @@ QVariant UserModel::data( QModelIndex const &index, int role ) const {
   }
   switch( role ) {
     case static_cast< int >( UserModel::Roles::UserId ):
-      return userList_.at( index.row() )->get_user_id();
+      return QVariant::fromValue( userList_.at( index.row() )->get_user_id() );
     case static_cast< int >( UserModel::Roles::UserName ):
-      return userList_.at( index.row() )->get_user_name();
+      return QVariant::fromValue( userList_.at( index.row() )->get_user_name() );
     case static_cast< int >( UserModel::Roles::UserPasswordHash ):
-      return userList_.at( index.row() )->get_user_password_hash();
+      return QVariant::fromValue( userList_.at( index.row() )->get_user_password_hash() );
     default:
       return QVariant();
   }
@@ -109,11 +109,11 @@ QVariant UserModel::headerData( int section, Qt::Orientation orientation, int ro
   }
   switch( role ) {
     case static_cast< int >( UserModel::Roles::UserId ):
-      return "User ID";
+      return QVariant::fromValue( QString( "User ID" ) );
     case static_cast< int >( UserModel::Roles::UserName ):
-      return "Username";
+      return QVariant::fromValue( QString( "Username" ) );
     case static_cast< int >( UserModel::Roles::UserPasswordHash ):
-      return "Password Hash";
+      return QVariant::fromValue( QString( "Password Hash" ) );
     default:
       return QVariant();
   }
