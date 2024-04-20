@@ -1,5 +1,6 @@
 add_requires( "boost" )
-add_requires( "boostnng" )
+add_requires( "boostnng master" )
+--add_requires( "zmqpb master" )
 
 add_requireconfs( "boost", { configs = { serialization = true } } )
 add_requireconfs( "boostnng", { configs = { shared = false } } )
@@ -12,6 +13,7 @@ target( "Network-Messages" )
 
     add_packages( "boost", { public = true } )
     add_packages( "boostnng", { public = true } )
+    --add_packages( "zmqpb", { public = true } )
 
     add_includedirs( "include", { public = true } )
 
@@ -30,5 +32,6 @@ target( "Network-Messages-Test" )
     add_deps( "Logger", { public = true } )
     add_packages( "gtest", { public = true } )
     add_packages( "boostnng", { public = true } )
+    --add_packages( "zmqpb", { public = true } )
 
     add_files( "test/*.cpp" )
