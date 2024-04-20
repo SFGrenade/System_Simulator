@@ -27,6 +27,8 @@ set_warnings( "allextra" )
 -- maybe this helps for the ci?
 set_policy("build.across_targets_in_parallel", false)
 
+add_repositories( "testing-repo git@github.com:NetworkingHelpers/xmake-repo.git" )
+
 -- test framework, gonna be added to each test
 add_requires( "gtest" )
 

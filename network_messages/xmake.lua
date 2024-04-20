@@ -1,7 +1,8 @@
 add_requires( "boost" )
-add_requires( "nng" )
+add_requires( "boostnng" )
 
 add_requireconfs( "boost", { configs = { serialization = true } } )
+add_requireconfs( "boostnng", { configs = { shared = false } } )
 
 target( "Network-Messages" )
     set_kind( "static" )
@@ -10,7 +11,7 @@ target( "Network-Messages" )
     set_group( "LIBS" )
 
     add_packages( "boost", { public = true } )
-    add_packages( "nng", { public = true } )
+    add_packages( "boostnng", { public = true } )
 
     add_includedirs( "include", { public = true } )
 
@@ -28,5 +29,6 @@ target( "Network-Messages-Test" )
     add_deps( "Network-Messages", { public = true } )
     add_deps( "Logger", { public = true } )
     add_packages( "gtest", { public = true } )
+    add_packages( "boostnng", { public = true } )
 
     add_files( "test/*.cpp" )
