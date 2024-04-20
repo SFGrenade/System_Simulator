@@ -15,7 +15,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         platform:
         - { runner: windows-latest, os: windows, arch: x64,    archive_ext: .zip }
