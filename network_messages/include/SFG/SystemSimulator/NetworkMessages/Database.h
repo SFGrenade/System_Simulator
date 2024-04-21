@@ -1,7 +1,7 @@
 #ifndef NETWORK_MESSAGES_DATABASE_H_
 #define NETWORK_MESSAGES_DATABASE_H_
 
-#include <boost/archive/text_iarchive.hpp>
+#include <networkingHelper/networkMessage.hpp>
 #include <string>
 
 namespace SFG {
@@ -16,11 +16,16 @@ class MsgContent {
   bool operator==( MsgContent const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& username;
-    ar& msgText;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( msgText, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( msgText, 1024 );
   }
 };
 

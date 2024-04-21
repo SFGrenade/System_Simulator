@@ -1,7 +1,7 @@
 #ifndef NETWORK_MESSAGES_USERS_H_
 #define NETWORK_MESSAGES_USERS_H_
 
-#include <boost/archive/text_iarchive.hpp>
+#include <networkingHelper/networkMessage.hpp>
 #include <string>
 
 namespace SFG {
@@ -16,11 +16,16 @@ class RegisterRequest {
   bool operator==( RegisterRequest const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& username;
-    ar& password_hash;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( password_hash, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( password_hash, 1024 );
   }
 };
 
@@ -32,11 +37,16 @@ class RegisterResponse {
   bool operator==( RegisterResponse const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& success;
-    ar& reason_for_fail;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
   }
 };
 
@@ -48,11 +58,16 @@ class LoginRequest {
   bool operator==( LoginRequest const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& username;
-    ar& password_hash;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( password_hash, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( password_hash, 1024 );
   }
 };
 
@@ -65,12 +80,18 @@ class LoginResponse {
   bool operator==( LoginResponse const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& success;
-    ar& reason_for_fail;
-    ar& session_token;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
+    s.text1b( session_token, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
+    s.text1b( session_token, 1024 );
   }
 };
 
@@ -81,10 +102,14 @@ class CheckSessionRequest {
   bool operator==( CheckSessionRequest const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& session_token;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.text1b( session_token, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.text1b( session_token, 1024 );
   }
 };
 
@@ -95,10 +120,14 @@ class CheckSessionResponse {
   bool operator==( CheckSessionResponse const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& is_valid;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.boolValue( is_valid );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.boolValue( is_valid );
   }
 };
 
@@ -109,10 +138,14 @@ class LogoutRequest {
   bool operator==( LogoutRequest const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& session_token;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.text1b( session_token, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.text1b( session_token, 1024 );
   }
 };
 
@@ -124,11 +157,16 @@ class LogoutResponse {
   bool operator==( LogoutResponse const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& success;
-    ar& reason_for_fail;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
   }
 };
 
@@ -140,11 +178,16 @@ class DeleteUserRequest {
   bool operator==( DeleteUserRequest const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& username;
-    ar& password_hash;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( password_hash, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.text1b( username, 1024 );
+    s.text1b( password_hash, 1024 );
   }
 };
 
@@ -156,11 +199,16 @@ class DeleteUserResponse {
   bool operator==( DeleteUserResponse const& b ) const;
 
   private:
-  friend class boost::serialization::access;
-  template < class Archive >
-  void serialize( Archive& ar, unsigned int const /*version*/ ) {
-    ar& success;
-    ar& reason_for_fail;
+  friend class bitsery::Access;
+  template < typename S >
+  void serialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
+  }
+  template < typename S >
+  void deserialize( S& s ) {
+    s.boolValue( success );
+    s.text1b( reason_for_fail, 1024 );
   }
 };
 
