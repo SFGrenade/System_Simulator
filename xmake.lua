@@ -5,7 +5,6 @@ set_version( "0.0.1", { build = "%Y%m%d", soname = true } )
 add_rules( "mode.debug", "mode.release", "mode.releasedbg", "mode.minsizerel" )
 add_rules( "plugin.compile_commands.autoupdate", { outputdir = ".vscode" } )
 
-
 if is_plat( "windows" ) then
     set_languages( "cxx17" )
 
@@ -32,7 +31,7 @@ add_repositories( "testing-repo https://github.com/SFGrenade/NetworkingHelpers-x
 -- test framework, gonna be added to each test
 add_requires( "gtest" )
 
-add_requireconfs( "*", { configs = { shared = get_config( "kind" ) == "shared" } } )
+add_requireconfs( "*", { debug = get_config( "mode" ) == "debug", configs = { shared = get_config( "kind" ) == "shared" } } )
 
 includes( "audio_interface" )
 includes( "configuration" )

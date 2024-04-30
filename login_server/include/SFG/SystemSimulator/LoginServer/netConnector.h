@@ -3,7 +3,7 @@
 
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-// #include <zmqPb/reqRep.hpp>  // todo
+#include <networkingHelper/reqRep.hpp>
 
 namespace SFG {
 namespace SystemSimulator {
@@ -14,12 +14,12 @@ class NetConnector {
   NetConnector();
   ~NetConnector();
 
-  // ZmqPb::ReqRep* operator->() const;  // todo
+  NetworkingHelper::ReqRep* operator->() const;
 
   private:
   SFG::SystemSimulator::Logger::spdlogger logger_;
   SFG::SystemSimulator::Configuration::Configuration config_;
-  // ZmqPb::ReqRep reqRepServer_;  // todo
+  NetworkingHelper::ReqRep reqRepServer_;
 };
 
 }  // namespace LoginServer

@@ -1,12 +1,12 @@
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
+#include <SFG/SystemSimulator/NetworkMessages/Users.h>
 #include <string>
-// #include <users.pb.h>  // todo
 #include <vector>
 
 #include "SFG/SystemSimulator/LoginServer/loginServer.h"
 #include "SFG/SystemSimulator/LoginServer/netConnector.h"
 
-// namespace SSP = SFG::SystemSimulator::ProtoMessages;  // todo
+namespace SSSNM = SFG::SystemSimulator::NetworkMessages;
 
 int main( int argc, char** argv ) {
   SFG::SystemSimulator::Logger::LoggerFactory::init( "LoginServerLog.log" );
@@ -20,52 +20,60 @@ int main( int argc, char** argv ) {
   SFG::SystemSimulator::LoginServer::LoginServer loginServer;
   SFG::SystemSimulator::LoginServer::NetConnector netConnector;
 
-  // // todo
-  // netConnector->subscribe( new SSP::RegisterRequest(), [&]( google::protobuf::Message const& req ) {
-  //   auto tmp = loginServer.registerUser( dynamic_cast< SSP::RegisterRequest const& >( req ).username(),
-  //                                        dynamic_cast< SSP::RegisterRequest const& >( req ).password_hash() );
-  //   auto ret = new SSP::RegisterResponse();
-  //   ret->set_success( tmp.first );
-  //   ret->set_reason_for_fail( tmp.second );
-  //   netConnector->sendMessage( ret );
-  // } );
-  // netConnector->subscribe( new SSP::LoginRequest(), [&]( google::protobuf::Message const& req ) {
-  //   auto tmp
-  //       = loginServer.loginUser( dynamic_cast< SSP::LoginRequest const& >( req ).username(), dynamic_cast< SSP::LoginRequest const& >( req ).password_hash()
-  //       );
-  //   auto ret = new SSP::LoginResponse();
-  //   ret->set_success( tmp.first );
-  //   if( tmp.first )
-  //     ret->set_session_token( tmp.second );
-  //   else
-  //     ret->set_reason_for_fail( tmp.second );
-  //   netConnector->sendMessage( ret );
-  // } );
-  // netConnector->subscribe( new SSP::CheckSessionRequest(), [&]( google::protobuf::Message const& req ) {
-  //   auto tmp = loginServer.checkUserSession( dynamic_cast< SSP::CheckSessionRequest const& >( req ).session_token() );
-  //   auto ret = new SSP::CheckSessionResponse();
-  //   ret->set_is_valid( tmp.first );
-  //   netConnector->sendMessage( ret );
-  // } );
-  // netConnector->subscribe( new SSP::LogoutRequest(), [&]( google::protobuf::Message const& req ) {
-  //   auto tmp = loginServer.logoutUserSession( dynamic_cast< SSP::LogoutRequest const& >( req ).session_token() );
-  //   auto ret = new SSP::LogoutResponse();
-  //   ret->set_success( tmp.first );
-  //   ret->set_reason_for_fail( tmp.second );
-  //   netConnector->sendMessage( ret );
-  // } );
-  // netConnector->subscribe( new SSP::DeleteUserRequest(), [&]( google::protobuf::Message const& req ) {
-  //   auto tmp = loginServer.deleteUser( dynamic_cast< SSP::DeleteUserRequest const& >( req ).username(),
-  //                                      dynamic_cast< SSP::DeleteUserRequest const& >( req ).password_hash() );
-  //   auto ret = new SSP::DeleteUserResponse();
-  //   ret->set_success( tmp.first );
-  //   ret->set_reason_for_fail( tmp.second );
-  //   netConnector->sendMessage( ret );
-  // } );
+  netConnector->subscribe( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.RegisterRequest", SSSNM::RegisterRequest() ),
+                           [&]( NetworkingHelper::NetworkMessage const& req ) {
+                             SSSNM::RegisterRequest actualReq = req.to< SSSNM::RegisterRequest >( "SFG.SystemSimulator.NetworkMessages.RegisterRequest" );
+                             auto tmp = loginServer.registerUser( actualReq.username, actualReq.password_hash );
+                             auto ret = SSSNM::RegisterResponse();
+                             ret.success = tmp.first;
+                             ret.reason_for_fail = tmp.second;
+                             netConnector->sendMessage( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.RegisterResponse", ret ) );
+                           } );
+  netConnector->subscribe( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.LoginRequest", SSSNM::LoginRequest() ),
+                           [&]( NetworkingHelper::NetworkMessage const& req ) {
+                             SSSNM::LoginRequest actualReq = req.to< SSSNM::LoginRequest >( "SFG.SystemSimulator.NetworkMessages.LoginRequest" );
+                             auto tmp = loginServer.loginUser( actualReq.username, actualReq.password_hash );
+                             auto ret = SSSNM::LoginResponse();
+                             ret.success = tmp.first;
+                             if( tmp.first )
+                               ret.session_token = tmp.second;
+                             else
+                               ret.reason_for_fail = tmp.second;
+                             netConnector->sendMessage( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.LoginResponse", ret ) );
+                           } );
+  netConnector->subscribe( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.CheckSessionRequest", SSSNM::CheckSessionRequest() ),
+                           [&]( NetworkingHelper::NetworkMessage const& req ) {
+                             SSSNM::CheckSessionRequest actualReq
+                                 = req.to< SSSNM::CheckSessionRequest >( "SFG.SystemSimulator.NetworkMessages.CheckSessionRequest" );
+                             auto tmp = loginServer.checkUserSession( actualReq.session_token );
+                             auto ret = SSSNM::CheckSessionResponse();
+                             ret.is_valid = tmp.first;
+                             netConnector->sendMessage(
+                                 NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.CheckSessionResponse", ret ) );
+                           } );
+  netConnector->subscribe( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.LogoutRequest", SSSNM::LogoutRequest() ),
+                           [&]( NetworkingHelper::NetworkMessage const& req ) {
+                             SSSNM::LogoutRequest actualReq = req.to< SSSNM::LogoutRequest >( "SFG.SystemSimulator.NetworkMessages.LogoutRequest" );
+                             auto tmp = loginServer.logoutUserSession( actualReq.session_token );
+                             auto ret = SSSNM::LogoutResponse();
+                             ret.success = tmp.first;
+                             ret.reason_for_fail = tmp.second;
+                             netConnector->sendMessage( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.LogoutResponse", ret ) );
+                           } );
+  netConnector->subscribe( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.DeleteUserRequest", SSSNM::DeleteUserRequest() ),
+                           [&]( NetworkingHelper::NetworkMessage const& req ) {
+                             SSSNM::DeleteUserRequest actualReq = req.to< SSSNM::DeleteUserRequest >( "SFG.SystemSimulator.NetworkMessages.DeleteUserRequest" );
+                             auto tmp = loginServer.deleteUser( actualReq.username, actualReq.password_hash );
+                             auto ret = SSSNM::DeleteUserResponse();
+                             ret.success = tmp.first;
+                             ret.reason_for_fail = tmp.second;
+                             netConnector->sendMessage(
+                                 NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.DeleteUserResponse", ret ) );
+                           } );
 
   while( 1 ) {
     try {
-      // netConnector->run();  // todo
+      netConnector->run();
     } catch( std::exception const& e ) {
       spdlog::error( fmt::runtime( "error calling netConnector.run: {:s}" ), e.what() );
     }

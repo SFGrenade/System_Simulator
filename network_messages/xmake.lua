@@ -1,10 +1,10 @@
 --add_requires( "boost" )
-add_requires( "networkinghelper" )
+add_requires( "networkinghelper master" )
 --add_requires( "boostnng master" )
 --add_requires( "zmqpb master" )
 
 --add_requireconfs( "boost", { configs = { serialization = true } } )
-add_requireconfs( "networkinghelper", { configs = { shared = false } } )
+--add_requireconfs( "networkinghelper", { configs = { shared = false } } )
 --add_requireconfs( "boostnng", { configs = { shared = false } } )
 --add_requireconfs( "zmqpb", { configs = { shared = false } } )
 

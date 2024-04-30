@@ -3,7 +3,7 @@
 
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-// #include <zmqPb/pushPull.hpp>  // todo
+#include <networkingHelper/pushPull.hpp>
 
 namespace SFG {
 namespace SystemSimulator {
@@ -14,12 +14,12 @@ class NetConnector {
   NetConnector();
   ~NetConnector();
 
-  // ZmqPb::PushPull* operator->() const;  // todo
+  NetworkingHelper::PushPull* operator->() const;
 
   private:
   SFG::SystemSimulator::Logger::spdlogger logger_;
   SFG::SystemSimulator::Configuration::Configuration config_;
-  // ZmqPb::PushPull pushPullReceiver_;  // todo
+  NetworkingHelper::PushPull pushPullReceiver_;
 };
 
 }  // namespace RecordingServer
