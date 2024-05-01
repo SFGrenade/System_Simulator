@@ -1,4 +1,4 @@
-name: Build & Push binaries
+name: Build, Test & Push binaries (Linux)
 
 permissions:
   contents: write
@@ -17,14 +17,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform:
-        - { runner: windows-latest, os: windows, arch: x64,    archive_ext: .zip }
-        - { runner: ubuntu-latest,  os: linux,   arch: x86_64, archive_ext: .tar.gz }
-        - { runner: macos-latest,   os: macos,   arch: x86_64, archive_ext: .tar.gz }
-        mode: [debug, release]
-        libkind: [shared, static]
+        os: [ubuntu-latest]
+        kind: [static, shared]
+        arch: [x86_64]
+        mode: [debug, release, releasedbg, minsizerel]
 
-    runs-on: ${{ matrix.platform.runner }}
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Get current date as package key
@@ -32,30 +30,18 @@ jobs:
       run: echo "key=$(date +'%W')" >> $GITHUB_OUTPUT
       shell: bash
 
-    - name: Set vs_runtime string (windows)
-      if: ${{ matrix.platform.os == 'windows' }}
+    - name: Set QT variables
       run: |
-        if [ "${{ matrix.mode }}" == "debug" ]; then
-          if [ "${{ matrix.libkind }}" == "shared" ]; then
-            echo "VS_RUNTIME_STRING=MDd" >> $GITHUB_ENV
-          else
-            echo "VS_RUNTIME_STRING=MTd" >> $GITHUB_ENV
-          fi
-        else
-          if [ "${{ matrix.libkind }}" == "shared" ]; then
-            echo "VS_RUNTIME_STRING=MD" >> $GITHUB_ENV
-          else
-            echo "VS_RUNTIME_STRING=MT" >> $GITHUB_ENV
-          fi
-        fi
+        echo "QT_OS=linux" >> $GITHUB_ENV
+        echo "QT_ARCH=gcc_64" >> $GITHUB_ENV
       shell: bash
 
     - name: Set OUTPUT_FILE variable
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          echo "OUTPUT_FILE=${{ matrix.platform.os }}_${{ matrix.platform.arch }}_${{ matrix.mode }}_${{ matrix.libkind }}_${{ env.VS_RUNTIME_STRING }}${{ matrix.platform.archive_ext }}" >> $GITHUB_ENV
+          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.mode }}_${{ matrix.kind }}_${{ env.VS_RUNTIME_STRING }}.tar.gz" >> $GITHUB_ENV
         else
-          echo "OUTPUT_FILE=${{ matrix.platform.os }}_${{ matrix.platform.arch }}_${{ matrix.mode }}_${{ matrix.libkind }}${{ matrix.platform.archive_ext }}" >> $GITHUB_ENV
+          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.mode }}_${{ matrix.kind }}.tar.gz" >> $GITHUB_ENV
         fi
       shell: bash
 
@@ -73,9 +59,9 @@ jobs:
       uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2'
-        host: '${{ matrix.platform.qt-os }}'
+        host: '${{ env.QT_OS }}'
         target: 'desktop'
-        arch: '${{ matrix.platform.qt-arch }}'
+        arch: '${{ env.QT_ARCH }}'
         modules: 'debug_info'
         set-env: true
         cache: true
@@ -91,35 +77,8 @@ jobs:
     - name: Update xmake repository
       run: xmake repo --update -vD
 
-    # Fetch xmake dephash
-    - name: Retrieve dependencies hash
-      id: dep_hash
-      run: echo "hash=$(xmake l utils.ci.packageskey)" >> $GITHUB_OUTPUT
-      shell: bash
-
-    # Retrieve xmake dependencies
-    - name: Restore cached xmake dependencies
-      id: restore-depcache
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
-        key: ${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ matrix.mode }}-${{ matrix.libkind }}-${{ env.VS_RUNTIME_STRING }}-${{ steps.dep_hash.outputs.hash }}-W${{ steps.cache_key.outputs.key }}
-
-    - name: Configure xmake and install dependencies (Unix)
-      if: ${{ matrix.platform.os != 'windows' }}
-      run: xmake config -vD --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.libkind }} --yes --policies=package.precompiled:n
-
-    - name: Configure xmake and install dependencies (Windows)
-      if: ${{ matrix.platform.os == 'windows' }}
-      run: xmake config -vD --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.libkind }} --vs_runtime=${{ env.VS_RUNTIME_STRING }} --yes --policies=package.precompiled:n
-
-    # Save dependencies
-    - name: Save cached xmake dependencies
-      if: ${{ !steps.restore-depcache.outputs.cache-hit }}
-      uses: actions/cache/save@v4
-      with:
-        path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
-        key: ${{ steps.restore-depcache.outputs.cache-primary-key }}
+    - name: Configure xmake and install dependencies
+      run: xmake config -vD --arch=${{ matrix.arch }} --mode=${{ matrix.mode }} --kind=${{ matrix.kind }} --yes --policies=package.precompiled:n
 
     - name: Build all targets
       run: xmake build -vD -a
