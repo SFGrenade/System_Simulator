@@ -33,7 +33,7 @@ jobs:
     - name: Set QT variables
       run: |
         echo "QT_OS=mac" >> $GITHUB_ENV
-        echo "QT_ARCH=gcc_64" >> $GITHUB_ENV
+        echo "QT_ARCH=clang_64" >> $GITHUB_ENV
       shell: bash
 
     - name: Set OUTPUT_FILE variable
