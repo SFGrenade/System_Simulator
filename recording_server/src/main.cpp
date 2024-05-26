@@ -1,5 +1,5 @@
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-#include <SFG/SystemSimulator/NetworkMessages/Audio.h>
+#include <SFG/SystemSimulator/NetworkMessages/Audio.pb.h>
 #include <string>
 #include <vector>
 
@@ -20,28 +20,24 @@ int main( int argc, char** argv ) {
   SFG::SystemSimulator::RecordingServer::RecordingServer recordingServer;
   SFG::SystemSimulator::RecordingServer::NetConnector netConnector;
 
-  netConnector->subscribe( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.AudioFormatInformation",
-                                                                   SSSNM::AudioFormatInformation() ),
-                           [&]( NetworkingHelper::NetworkMessage const& req ) {
-                             SSSNM::AudioFormatInformation const& actualReq
-                                 = req.to< SSSNM::AudioFormatInformation >( "SFG.SystemSimulator.NetworkMessages.AudioFormatInformation" );
+  netConnector->subscribe( new SSSNM::AudioFormatInformation(), [&]( google::protobuf::Message const& req ) {
+    SSSNM::AudioFormatInformation const& actualReq = static_cast< SSSNM::AudioFormatInformation const& >( req );
 
-                             recordingServer.setupAudioGenerator( actualReq.audio_generator_id,
-                                                                  static_cast< uint16_t >( actualReq.channels ),
-                                                                  static_cast< uint32_t >( actualReq.sample_rate ),
-                                                                  static_cast< uint16_t >( actualReq.bits_per_sample ) );
-                           } );
-  netConnector->subscribe( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.AudioFrame", SSSNM::AudioFrame() ),
-                           [&]( NetworkingHelper::NetworkMessage const& req ) {
-                             SSSNM::AudioFrame const& actualReq = req.to< SSSNM::AudioFrame >( "SFG.SystemSimulator.NetworkMessages.AudioFrame" );
+    recordingServer.setupAudioGenerator( actualReq.audio_generator_id(),
+                                         static_cast< uint16_t >( actualReq.channels() ),
+                                         static_cast< uint32_t >( actualReq.sample_rate() ),
+                                         static_cast< uint16_t >( actualReq.bits_per_sample() ) );
+  } );
+  netConnector->subscribe( new SSSNM::AudioFrame(), [&]( google::protobuf::Message const& req ) {
+    SSSNM::AudioFrame const& actualReq = static_cast< SSSNM::AudioFrame const& >( req );
 
-                             std::list< char > actualData;
-                             for( char byte : actualReq.audio_data ) {
-                               actualData.push_back( byte );
-                             }
+    std::list< char > actualData;
+    for( char byte : actualReq.audio_data() ) {
+      actualData.push_back( byte );
+    }
 
-                             recordingServer.streamAudioFrame( actualReq.audio_generator_id, actualData );
-                           } );
+    recordingServer.streamAudioFrame( actualReq.audio_generator_id(), actualData );
+  } );
 
   while( 1 ) {
     try {

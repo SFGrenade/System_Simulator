@@ -1,7 +1,7 @@
 #include "SFG/SystemSimulator/SettingsInterface/mainWindow.h"
 
 #include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
-#include <SFG/SystemSimulator/NetworkMessages/Database.h>
+#include <SFG/SystemSimulator/NetworkMessages/Database.pb.h>
 
 namespace SSSNM = SFG::SystemSimulator::NetworkMessages;
 
@@ -39,10 +39,10 @@ void MainWindow::buttonClicked() {
   logger_->trace( fmt::runtime( "buttonClicked()" ) );
 
   SSSNM::MsgContent myMessage;
-  myMessage.username = "username";
-  myMessage.msgText = "msgText";
-  logger_->trace( fmt::runtime( "buttonClicked - myMessage.username: '{:s}'" ), myMessage.username );
-  logger_->trace( fmt::runtime( "buttonClicked - myMessage.msgtext: '{:s}'" ), myMessage.msgText );
+  myMessage.set_username( "username" );
+  myMessage.set_msg_text( "msgText" );
+  logger_->trace( fmt::runtime( "buttonClicked - myMessage.username: '{:s}'" ), myMessage.username() );
+  logger_->trace( fmt::runtime( "buttonClicked - myMessage.msg_text: '{:s}'" ), myMessage.msg_text() );
 
   logger_->trace( fmt::runtime( "buttonClicked()~" ) );
 }

@@ -19,8 +19,8 @@ NetConnector::~NetConnector() {
   this->logger_->trace( fmt::runtime( "~NetConnector~" ) );
 }
 
-NetworkingHelper::PushPull* NetConnector::operator->() const {
-  return const_cast< NetworkingHelper::PushPull* >( &( this->pushPullReceiver_ ) );
+ZmqPb::PushPull* NetConnector::operator->() const {
+  return const_cast< ZmqPb::PushPull* >( &( this->pushPullReceiver_ ) );
 }
 
 }  // namespace RecordingServer

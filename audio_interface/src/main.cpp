@@ -1,6 +1,6 @@
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
-#include <SFG/SystemSimulator/NetworkMessages/Audio.h>
+#include <SFG/SystemSimulator/NetworkMessages/Audio.pb.h>
 #include <chrono>
 #include <mutex>
 #include <queue>
@@ -53,16 +53,16 @@ int audioMonitoringCallback( const void *inputBuffer,
   }
 
   uint8_t *audioData = new uint8_t[framesPerBuffer * 2];
-  SSSNM::AudioFrame rep;
+  SSSNM::AudioFrame *rep = new SSSNM::AudioFrame();
   for( i = 0; i < framesPerBuffer; i++ ) {
     audioData[( 2 * i ) + 0] = ( ( *in ) >> 0 ) & 0xFF;
     audioData[( 2 * i ) + 1] = ( ( *in ) >> 8 ) & 0xFF;
     *out++ = *in++;
   }
-  rep.audio_generator_id = "AudioInterface";
-  rep.audio_data = std::vector< uint8_t >( audioData, audioData + ( framesPerBuffer * 2 ) );
+  rep->set_audio_generator_id( "AudioInterface" );
+  rep->set_audio_data( std::string( ( (char *)audioData ), static_cast< size_t >( framesPerBuffer * 2 ) ) );
   delete[] audioData;
-  ( *data->netConnector )->sendMessage( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.AudioFrame", rep ) );
+  ( *data->netConnector )->sendMessage( rep );
 
   return PortAudio::PaStreamCallbackResult::paContinue;
 }
@@ -159,33 +159,33 @@ int main( int argc, char **argv ) {
     myData.flags = static_cast< PortAudio::PaStreamFlags >( config.get< unsigned long >( "Input", "StreamFlags" ) );
     myData.netConnector = &netConnector;
 
-    SSSNM::AudioFormatInformation rep;
-    rep.audio_generator_id = "AudioInterface";
-    rep.channels = myData.inputSettings.channelCount;
-    rep.sample_rate = myData.sampleRate;
+    SSSNM::AudioFormatInformation *rep = new SSSNM::AudioFormatInformation();
+    rep->set_audio_generator_id( "AudioInterface" );
+    rep->set_channels( myData.inputSettings.channelCount );
+    rep->set_sample_rate( myData.sampleRate );
     switch( myData.inputSettings.sampleFormat ) {
       case 0x00000001:
-        rep.bits_per_sample = 32;
+        rep->set_bits_per_sample( 32 );
         break;
       case 0x00000002:
-        rep.bits_per_sample = 32;
+        rep->set_bits_per_sample( 32 );
         break;
       case 0x00000004:
-        rep.bits_per_sample = 24;
+        rep->set_bits_per_sample( 24 );
         break;
       case 0x00000008:
-        rep.bits_per_sample = 16;
+        rep->set_bits_per_sample( 16 );
         break;
       case 0x00000010:
-        rep.bits_per_sample = 8;
+        rep->set_bits_per_sample( 8 );
         break;
       case 0x00000020:
-        rep.bits_per_sample = 8;
+        rep->set_bits_per_sample( 8 );
         break;
       default:
         break;
     }
-    netConnector->sendMessage( NetworkingHelper::NetworkMessage::from( "SFG.SystemSimulator.NetworkMessages.AudioFormatInformation", rep ) );
+    netConnector->sendMessage( rep );
 
     if( ( err = PortAudio::Pa_OpenStream( &myData.portAudioStream,
                                           &myData.inputSettings,

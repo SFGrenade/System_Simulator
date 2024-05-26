@@ -19,8 +19,8 @@ NetConnector::~NetConnector() {
   this->logger_->trace( fmt::runtime( "~NetConnector~" ) );
 }
 
-NetworkingHelper::ReqRep* NetConnector::operator->() const {
-  return const_cast< NetworkingHelper::ReqRep* >( &( this->reqRepServer_ ) );
+ZmqPb::ReqRep* NetConnector::operator->() const {
+  return const_cast< ZmqPb::ReqRep* >( &( this->reqRepServer_ ) );
 }
 
 }  // namespace LoginServer
