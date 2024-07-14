@@ -5,8 +5,10 @@
 #include <string>
 
 // Including FMT headers
+#include <fmt/base.h>
 #include <fmt/chrono.h>
-#include <fmt/core.h>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 // Including SPDLOG headers
 #ifndef SPDLOG_FMT_EXTERNAL

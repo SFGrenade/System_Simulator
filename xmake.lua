@@ -4,9 +4,10 @@ set_version( "0.0.1", { build = "%Y%m%d", soname = true } )
 
 add_rules( "mode.debug", "mode.release", "mode.releasedbg", "mode.minsizerel" )
 add_rules( "plugin.compile_commands.autoupdate", { outputdir = ".vscode" } )
+add_rules( "plugin.compile_commands.autoupdate", { outputdir = "build" } )
 
 if is_plat( "windows" ) then
-    set_languages( "cxx17" )
+    set_languages( "cxx23" )
 
     add_cxflags( "/Zc:__cplusplus" )
     add_cxflags( "/Zc:preprocessor" )
@@ -18,7 +19,7 @@ if is_plat( "windows" ) then
     --set_runtimes( is_mode( "debug" ) and "MDd" or "MD" )
     set_runtimes( is_mode( "debug" ) and "MDd" or "MD" )
 else
-    set_languages( "c++17" )
+    set_languages( "c++23" )
 end
 
 set_warnings( "allextra" )
@@ -31,7 +32,8 @@ add_repositories( "testing-repo https://github.com/SFGrenade/NetworkingHelpers-x
 -- test framework, gonna be added to each test
 add_requires( "gtest" )
 
-add_requireconfs( "*", { debug = get_config( "mode" ) == "debug", configs = { shared = get_config( "kind" ) == "shared" } } )
+--add_requireconfs( "*", { debug = get_config( "mode" ) == "debug", configs = { shared = get_config( "kind" ) == "shared" } } )
+add_requireconfs( "*", { configs = { shared = get_config( "kind" ) == "shared" } } )
 
 includes( "audio_interface" )
 includes( "configuration" )
@@ -40,3 +42,4 @@ includes( "login_server" )
 includes( "network_messages" )
 includes( "recording_server" )
 includes( "settings_interface" )
+includes( "test_lib" )
