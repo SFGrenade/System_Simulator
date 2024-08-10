@@ -24,8 +24,6 @@ target( "Test-Lib-Exe" )
 
     add_files( "src/main.cpp" )
 
-    add_frameworks( "QtCore", "QtGui", "QtWidgets" )
-
     after_build( function ( target )
         import( "core.project.config" )
         os.cp( path.join( "$(scriptdir)", "config" ), path.join( "$(projectdir)", target.targetdir( target ) ) )
