@@ -18,8 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        kind: [static, shared]
         arch: [x86_64]
+        kind: [static, shared]
         mode: [debug, release, releasedbg, minsizerel]
 
     runs-on: ${{ matrix.os }}
@@ -27,7 +27,7 @@ jobs:
     steps:
     - name: Get current date as package key
       id: cache_key
-      run: echo "key=$(date +'%W')" >> $GITHUB_OUTPUT
+      run: echo "key=$(date +'%W')_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.kind }}_${{ matrix.mode }}" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Set QT variables
@@ -39,9 +39,9 @@ jobs:
     - name: Set OUTPUT_FILE variable
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.mode }}_${{ matrix.kind }}_${{ env.VS_RUNTIME_STRING }}.tar.gz" >> $GITHUB_ENV
+          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.kind }}_${{ matrix.mode }}_${{ env.VS_RUNTIME_STRING }}.tar.gz" >> $GITHUB_ENV
         else
-          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.mode }}_${{ matrix.kind }}.tar.gz" >> $GITHUB_ENV
+          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.kind }}_${{ matrix.mode }}.tar.gz" >> $GITHUB_ENV
         fi
       shell: bash
 

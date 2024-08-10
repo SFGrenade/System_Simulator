@@ -18,8 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        kind: [static, shared]
         arch: [x64, x86] # arm64 not supported by aqtinstall for 5.12.2
+        kind: [static, shared]
         runtimes: [MT, MD]
         mode: [debug, release, releasedbg, minsizerel]
 
@@ -28,7 +28,7 @@ jobs:
     steps:
     - name: Get current date as package key
       id: cache_key
-      run: echo "key=$(date +'%W')" >> $GITHUB_OUTPUT
+      run: echo "key=$(date +'%W')_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.kind }}_${{ matrix.runtimes }}_${{ matrix.mode }}" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Set QT variables
@@ -53,9 +53,9 @@ jobs:
     - name: Set OUTPUT_FILE variable
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.mode }}_${{ matrix.kind }}_${{ env.VS_RUNTIME_STRING }}.zip" >> $GITHUB_ENV
+          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.kind }}_${{ matrix.mode }}_${{ env.VS_RUNTIME_STRING }}.zip" >> $GITHUB_ENV
         else
-          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.mode }}_${{ matrix.kind }}.zip" >> $GITHUB_ENV
+          echo "OUTPUT_FILE=${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.kind }}_${{ matrix.mode }}.zip" >> $GITHUB_ENV
         fi
       shell: bash
 
