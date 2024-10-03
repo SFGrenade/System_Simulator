@@ -1,8 +1,8 @@
 --add_requires( "boost" )
---add_requires( "networkinghelper master" )
---add_requires( "boostnng master" )
+--add_requires( "networkinghelper" )
+--add_requires( "boostnng" )
 add_requires( "protobuf-cpp" )
-add_requires( "zmqpb master" )
+add_requires( "zmqpb" )
 
 --add_requireconfs( "boost", { configs = { serialization = true } } )
 --add_requireconfs( "networkinghelper", { configs = { shared = false } } )
