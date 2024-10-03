@@ -1,7 +1,17 @@
 #include "SFG/SystemSimulator/SettingsInterface/mainWindow.h"
 
+#include <QHeaderView>
+#include <QMenuBar>
+#include <QPushButton>
+#include <QStatusBar>
+#include <QTableView>
+#include <QVBoxLayout>
 #include <SFG/SystemSimulator/Logger-Qt/qtFormatter.h>
+#include <SFG/SystemSimulator/Logger/scopedLogger.h>
 #include <SFG/SystemSimulator/NetworkMessages/Database.pb.h>
+
+#include "SFG/SystemSimulator/SettingsInterface/models/listToTableModel.h"
+#include "SFG/SystemSimulator/SettingsInterface/models/userModel.h"
 
 namespace SSSNM = SFG::SystemSimulator::NetworkMessages;
 
@@ -9,23 +19,37 @@ namespace SFG {
 namespace SystemSimulator {
 namespace SettingsInterface {
 
-MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "MainWindow" ) ) {
-  logger_->trace( fmt::runtime( "MainWindow( parent: {:p} )" ), static_cast< void * >( parent ) );
+MainWindow::MainWindow( QWidget* parent ) : QMainWindow( parent ), logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "MainWindow" ) ) {
+  logger_->trace( fmt::runtime( "MainWindow( parent: {:p} )" ), static_cast< void* >( parent ) );
 
-  _MenuBar = new QMenuBar( this );
-  _Widget = new QWidget( this );
-  _StatusBar = new QStatusBar( this );
-  _VBoxLayout = new QVBoxLayout( _Widget );
-  _PushButton = new QPushButton( "Push me", _Widget );
+  QMenuBar* menuBar = new QMenuBar( this );
+  QWidget* widget = new QWidget( this );
+  QStatusBar* statusBar = new QStatusBar( this );
+  QVBoxLayout* vBoxLayout = new QVBoxLayout( widget );
+  QPushButton* pushButton = new QPushButton( "Push me", widget );
+  QTableView* tableView = new QTableView( widget );
+  ListToTableModel* listToTableModel = new ListToTableModel( tableView );
+  UserModel* userModel = new UserModel( listToTableModel );
 
-  _Widget->setLayout( _VBoxLayout );
-  _VBoxLayout->addWidget( _PushButton, 1, Qt::AlignmentFlag::AlignCenter );
+  widget->setLayout( vBoxLayout );
 
-  setMenuBar( _MenuBar );
-  setCentralWidget( _Widget );
-  setStatusBar( _StatusBar );
+  vBoxLayout->addWidget( pushButton, 0, Qt::AlignmentFlag::AlignCenter );
+  vBoxLayout->addWidget( tableView, 1 );
 
-  connect( _PushButton, &QPushButton::clicked, this, &MainWindow::buttonClicked );
+  tableView->setModel( listToTableModel );
+
+  listToTableModel->setSourceModel( userModel );
+
+  userModel->insertRow( 0 );
+  userModel->setData( userModel->index( 0 ), QVariant::fromValue< uint64_t >( 1ull ), static_cast< int >( UserModel::Roles::UserId ) );
+  userModel->setData( userModel->index( 0 ), QString( "First Entry" ), static_cast< int >( UserModel::Roles::UserName ) );
+  userModel->setData( userModel->index( 0 ), QString( "whatever tbh" ), static_cast< int >( UserModel::Roles::UserPasswordHash ) );
+
+  setMenuBar( menuBar );
+  setCentralWidget( widget );
+  setStatusBar( statusBar );
+
+  connect( pushButton, &QPushButton::clicked, this, &MainWindow::buttonClicked );
 
   logger_->trace( fmt::runtime( "MainWindow()~" ) );
 }

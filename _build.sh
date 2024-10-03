@@ -29,7 +29,8 @@ doCommand "00_made_build_logs" "echo \"we did it\""
 
 doCommand "01_xmake_set_theme" "xmake global --theme=plain"
 
-doCommand "02_xmake_configure" "xmake config -p linux -a x86_64 -m release -k shared -vD -y"
+#doCommand "02_xmake_configure" "xmake config -p linux -a x86_64 -m release -k shared -vD -y"
+doCommand "02_xmake_configure" "xmake config --import=.vscode/xmakeConfig.release.conf -vD -y"
 
 doCommand "03_xmake_build" "xmake build -a -vD"
 
