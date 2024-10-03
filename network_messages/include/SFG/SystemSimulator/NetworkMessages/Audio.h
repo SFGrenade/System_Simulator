@@ -39,7 +39,7 @@ class AudioFormatInformation {
 class AudioFrame {
   public:
   std::string audio_generator_id = "";
-  std::vector< uint8_t > audio_data = std::vector< uint8_t >();
+  std::vector< uint8_t > audio_data;
 
   bool operator==( AudioFrame const& b ) const;
 

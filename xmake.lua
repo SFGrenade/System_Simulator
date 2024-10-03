@@ -4,7 +4,6 @@ set_version( "0.0.1", { build = "%Y%m%d", soname = true } )
 
 add_rules( "mode.debug", "mode.release", "mode.releasedbg", "mode.minsizerel" )
 add_rules( "plugin.compile_commands.autoupdate", { outputdir = ".vscode" } )
-add_rules( "plugin.compile_commands.autoupdate", { outputdir = "build" } )
 
 if is_plat( "windows" ) then
     set_languages( "cxx23" )
@@ -33,6 +32,7 @@ set_policy("build.across_targets_in_parallel", false)
 add_requires( "gtest" )
 
 --add_requireconfs( "*", { debug = get_config( "mode" ) == "debug", configs = { shared = get_config( "kind" ) == "shared" } } )
+add_requireconfs( "**", "*.**", { system = false } )
 add_requireconfs( "*", { configs = { shared = get_config( "kind" ) == "shared" } } )
 
 includes( "audio_interface" )

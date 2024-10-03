@@ -34,8 +34,9 @@ void MyQtMessageHandler( QtMsgType type, QMessageLogContext const& context, QStr
 int main( int argc, char** argv ) {
   SFG::SystemSimulator::Logger::LoggerFactory::init( "testLogs/settings_interface_test.log", false );
   std::vector< std::string > args;
+  args.reserve( argc );
   for( int i = 0; i < argc; i++ ) {
-    args.push_back( std::string( argv[i] ) );
+    args.emblace_back( argv[i] );
   }
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
