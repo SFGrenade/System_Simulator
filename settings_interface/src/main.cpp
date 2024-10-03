@@ -37,7 +37,7 @@ int main( int argc, char** argv ) {
   std::vector< std::string > args;
   args.reserve( argc );
   for( int i = 0; i < argc; i++ ) {
-    args.emblace_back( argv[i] );
+    args.push_back( std::string( argv[i] ) );
   }
   spdlog::trace( fmt::runtime( "main( argc: {:d}, argv: '{:s}' )" ), argc, fmt::join( args, "', '" ) );
 
