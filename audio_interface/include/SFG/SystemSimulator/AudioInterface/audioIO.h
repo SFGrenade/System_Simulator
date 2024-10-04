@@ -4,8 +4,8 @@
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 
-#include "SFG/SystemSimulator/AudioInterface/NetConnector.h"
 #include "SFG/SystemSimulator/AudioInterface/_portaudio.h"
+#include "SFG/SystemSimulator/AudioInterface/netConnector.h"
 
 namespace SFG {
 namespace SystemSimulator {
