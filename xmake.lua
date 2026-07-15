@@ -3,22 +3,18 @@ set_project( "System_Simulator" )
 set_version( "0.0.1", { build = "%Y%m%d", soname = true } )
 
 add_rules( "mode.debug", "mode.release", "mode.releasedbg", "mode.minsizerel" )
-add_rules( "plugin.compile_commands.autoupdate", { outputdir = ".vscode" } )
+
+set_languages( "c++20" )
 
 if is_plat( "windows" ) then
-    set_languages( "cxx23" )
-
     add_cxflags( "/Zc:__cplusplus" )
     add_cxflags( "/Zc:preprocessor" )
 
     add_cxflags( "/permissive-" )
 
     -- MD required because Qt
-    -- MDd somehow breaks installation of packages lol
-    --set_runtimes( is_mode( "debug" ) and "MDd" or "MD" )
     set_runtimes( is_mode( "debug" ) and "MDd" or "MD" )
 else
-    set_languages( "c++23" )
 end
 
 set_warnings( "allextra" )
@@ -35,11 +31,12 @@ add_requires( "gtest" )
 add_requireconfs( "**", "*.**", { system = false } )
 add_requireconfs( "*", { configs = { shared = get_config( "kind" ) == "shared" } } )
 
-includes( "audio_interface" )
+--includes( "audio_interface" )
 includes( "configuration" )
 includes( "logger" )
-includes( "login_server" )
+--includes( "login_server" )
+includes( "modlinks_interface" )
 includes( "network_messages" )
-includes( "recording_server" )
-includes( "settings_interface" )
-includes( "test_lib" )
+--includes( "recording_server" )
+--includes( "settings_interface" )
+--includes( "test_lib" )

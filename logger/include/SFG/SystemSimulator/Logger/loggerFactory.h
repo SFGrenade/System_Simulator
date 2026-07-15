@@ -1,12 +1,11 @@
 #ifndef LOGGER_LOGGERFACTORY_H_
 #define LOGGER_LOGGERFACTORY_H_
 
+#include <SFG/SystemSimulator/Logger/_spdlog.h>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
-
-#include "SFG/SystemSimulator/Logger/_spdlog.h"
 
 namespace SFG {
 namespace SystemSimulator {
