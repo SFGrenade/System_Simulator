@@ -37,7 +37,7 @@ class ModLinksModel : public AbstractModel {
     std::string readme = "";      // URL
     std::string issues = "";      // URL
     std::vector< std::string > integrations{};
-    std::vector< mm::Tag > tags{};
+    std::vector< mm::TagEnum > tags{};
     std::vector< std::string > authors{};
   };
 

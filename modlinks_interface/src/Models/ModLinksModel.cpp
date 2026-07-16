@@ -116,22 +116,22 @@ void ModLinksModel::setupFromCache() {
     .Name = R"(Double Enemies)",
     .Description = R"(Duplicates most enemies in the game, and shares hp between duplicate bosses.)",
     .Version = R"(1.0.0.0)",
-    .Link = mm::LinkBase {
+    .Link = mm::SingleLinkType {
       .xml_content = R"(https://github.com/Genio250/Double-Enemies/releases/download/v1.0/Double.Enemies.zip)",
       .SHA256 = R"(771e8cb3717f69928b8dc8d62c6cea29cb7374ed7f4c101d7562aaabb092ce7d)",
     },
     .Dependencies = mm::Dependencies {
       .Dependency = {
-        R"(Satchel)",
-        R"(Invincibility Monitor)",
-        R"(DoubleRadiance)",
+        mm::Dependency{ .xml_content = R"(Satchel)" },
+        mm::Dependency{ .xml_content = R"(Invincibility Monitor)" },
+        mm::Dependency{ .xml_content = R"(DoubleRadiance)" },
       }
     },
     .Repository = R"(https://github.com/Genio250/Double-Enemies)",
-    .Issues = R"(https://github.com/Genio250/Double-Enemies/issues)",
+    .Issues = mm::IssuesBase{.xml_content = R"(https://github.com/Genio250/Double-Enemies/issues)"},
     .Authors = mm::AuthorsBase {
       .Author = {
-        R"(Genio250)",
+        mm::Author{.xml_content = R"(Genio250)"},
       }
     },
   } );
@@ -142,7 +142,7 @@ void ModLinksModel::setupFromCache() {
   over new secrets and stories!
   with an incredible new soundtrack!)",
     .Version = R"(1.1.1.7)",
-    .Links = mm::LinksBase {
+    .Links = mm::LinksType {
       .Linux = mm::SingleLinkType {
         .xml_content = R"(https://github.com/PaleCourt/PaleCourt/releases/download/1.1.1.7/PaleCourt-Lin.zip)",
         .SHA256 = R"(32328DA0903CDE25173DC4C885B068A1EBC91329506D63BE863A24EB35E72945)",
@@ -158,86 +158,86 @@ void ModLinksModel::setupFromCache() {
     },
     .Dependencies = mm::Dependencies {
       .Dependency = {
-        R"(FrogCore)",
-        R"(SFCore)",
-        R"(Vasi)",
+        mm::Dependency{ .xml_content = R"(FrogCore)" },
+        mm::Dependency{ .xml_content = R"(SFCore)" },
+        mm::Dependency{ .xml_content = R"(Vasi)" },
       }
     },
     .Repository = R"(https://github.com/PaleCourt/PaleCourt)",
-    .Integrations = mm::IntegrationsBase {
+    .Integrations = mm::IntegrationsType {
       .Integration = {
-        R"(GodSeekerPlus)",
-        R"(Enemy HP Bar)",
+        mm::Integration{.xml_content = R"(GodSeekerPlus)"},
+        mm::Integration{.xml_content = R"(Enemy HP Bar)"},
       }
     },
-    .Tags = mm::TagsBase {
+    .Tags = mm::TagsType {
       .Tag = {
-        mm::Tag::Boss,
-        mm::Tag::Expansion,
-        mm::Tag::Gameplay,
+        mm::Tag{.xml_content = mm::TagEnum::Boss},
+        mm::Tag{.xml_content = mm::TagEnum::Expansion},
+        mm::Tag{.xml_content = mm::TagEnum::Gameplay},
       }
     },
     .Authors = mm::AuthorsBase {
       .Author = {
-        R"(MEBI)",
-        R"(Zaliant)",
-        R"(Saleh)",
-        R"(HooKnows)",
-        R"(RiverRobot)",
-        R"(RedFrog)",
-        R"(SFGrenade)",
-        R"(Clazex)",
-        R"(Jngo102)",
-        R"(TheGreatGallus)",
-        R"(56)",
-        R"(Link459)",
-        R"(Chaktis)",
-        R"(KitsuneMedia)",
-        R"(FoldingPapers)",
-        R"(Gauthier)",
-        R"(CarsonComposes)",
-        R"(MAT)",
-        R"(SovereignElise)",
-        R"(Rotten Legacy)",
-        R"(mossbag)",
-        R"(Sarart)",
-        R"(JoSeBach)",
-        R"(RocketFire20)",
-        R"(Manno Stone)",
-        R"(HelenSB)",
-        R"(Azerod)",
-        R"(Whisky)",
-        R"(Croissant)",
-        R"(HuntHussle)",
-        R"(General Milky)",
-        R"(Knightmere)",
-        R"(Erie)",
-        R"(Spoonsei)",
-        R"(Pan)",
-        R"(DwarfWoot)",
-        R"(Schy)",
-        R"(Alprechim)",
-        R"(ygsbzr)",
-        R"(Yisrael)",
-        R"(KamaKiller)",
-        R"(Piquant Trobbio)",
-        R"(WaxOcelot)",
-        R"(Plush)",
-        R"(ShadicD20)",
-        R"(Chrome)",
-        R"(Exempt-Medic)",
-        R"(CrankyTemplar)",
-        R"(MyPetCactus)",
-        R"(Mulhima)",
-        R"(Frunobulaxian)",
-        R"(AshtinPeaks)",
-        R"(PizzaBox)",
-        R"(Bluevooid)",
-        R"(TheBlueVirus)",
-        R"(Dark_Prelate)",
-        R"(Hotspring)",
-        R"(Lethal_Vessel)",
-        R"(Risto The Chicken)",
+        mm::Author{.xml_content = R"(MEBI)"},
+        mm::Author{.xml_content = R"(Zaliant)"},
+        mm::Author{.xml_content = R"(Saleh)"},
+        mm::Author{.xml_content = R"(HooKnows)"},
+        mm::Author{.xml_content = R"(RiverRobot)"},
+        mm::Author{.xml_content = R"(RedFrog)"},
+        mm::Author{.xml_content = R"(SFGrenade)"},
+        mm::Author{.xml_content = R"(Clazex)"},
+        mm::Author{.xml_content = R"(Jngo102)"},
+        mm::Author{.xml_content = R"(TheGreatGallus)"},
+        mm::Author{.xml_content = R"(56)"},
+        mm::Author{.xml_content = R"(Link459)"},
+        mm::Author{.xml_content = R"(Chaktis)"},
+        mm::Author{.xml_content = R"(KitsuneMedia)"},
+        mm::Author{.xml_content = R"(FoldingPapers)"},
+        mm::Author{.xml_content = R"(Gauthier)"},
+        mm::Author{.xml_content = R"(CarsonComposes)"},
+        mm::Author{.xml_content = R"(MAT)"},
+        mm::Author{.xml_content = R"(SovereignElise)"},
+        mm::Author{.xml_content = R"(Rotten Legacy)"},
+        mm::Author{.xml_content = R"(mossbag)"},
+        mm::Author{.xml_content = R"(Sarart)"},
+        mm::Author{.xml_content = R"(JoSeBach)"},
+        mm::Author{.xml_content = R"(RocketFire20)"},
+        mm::Author{.xml_content = R"(Manno Stone)"},
+        mm::Author{.xml_content = R"(HelenSB)"},
+        mm::Author{.xml_content = R"(Azerod)"},
+        mm::Author{.xml_content = R"(Whisky)"},
+        mm::Author{.xml_content = R"(Croissant)"},
+        mm::Author{.xml_content = R"(HuntHussle)"},
+        mm::Author{.xml_content = R"(General Milky)"},
+        mm::Author{.xml_content = R"(Knightmere)"},
+        mm::Author{.xml_content = R"(Erie)"},
+        mm::Author{.xml_content = R"(Spoonsei)"},
+        mm::Author{.xml_content = R"(Pan)"},
+        mm::Author{.xml_content = R"(DwarfWoot)"},
+        mm::Author{.xml_content = R"(Schy)"},
+        mm::Author{.xml_content = R"(Alprechim)"},
+        mm::Author{.xml_content = R"(ygsbzr)"},
+        mm::Author{.xml_content = R"(Yisrael)"},
+        mm::Author{.xml_content = R"(KamaKiller)"},
+        mm::Author{.xml_content = R"(Piquant Trobbio)"},
+        mm::Author{.xml_content = R"(WaxOcelot)"},
+        mm::Author{.xml_content = R"(Plush)"},
+        mm::Author{.xml_content = R"(ShadicD20)"},
+        mm::Author{.xml_content = R"(Chrome)"},
+        mm::Author{.xml_content = R"(Exempt-Medic)"},
+        mm::Author{.xml_content = R"(CrankyTemplar)"},
+        mm::Author{.xml_content = R"(MyPetCactus)"},
+        mm::Author{.xml_content = R"(Mulhima)"},
+        mm::Author{.xml_content = R"(Frunobulaxian)"},
+        mm::Author{.xml_content = R"(AshtinPeaks)"},
+        mm::Author{.xml_content = R"(PizzaBox)"},
+        mm::Author{.xml_content = R"(Bluevooid)"},
+        mm::Author{.xml_content = R"(TheBlueVirus)"},
+        mm::Author{.xml_content = R"(Dark_Prelate)"},
+        mm::Author{.xml_content = R"(Hotspring)"},
+        mm::Author{.xml_content = R"(Lethal_Vessel)"},
+        mm::Author{.xml_content = R"(Risto The Chicken)"},
       }
     },
   } );
@@ -250,8 +250,8 @@ void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList 
                           fmt::format( fmt::runtime( "integrateNewList()~" ) ) );
 
   std::sort( manifestList.begin(), manifestList.end(), []( mm::Manifest const& a, mm::Manifest const& b ) {
-    std::string aName = a.Name.value();
-    std::string bName = b.Name.value();
+    std::string aName = a.Name.xml_content.value();
+    std::string bName = b.Name.xml_content.value();
     std::transform( aName.begin(), aName.end(), aName.begin(), []( unsigned char c ) { return std::tolower( c ); } );
     std::transform( bName.begin(), bName.end(), bName.begin(), []( unsigned char c ) { return std::tolower( c ); } );
     return aName < bName;
@@ -262,7 +262,7 @@ void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList 
   // check for removed items
   row = 0;
   for( auto iter = dataList_.begin(); iter != dataList_.end(); ) {
-    bool isStillInFolder = std::any_of( manifestList.begin(), manifestList.end(), [iter]( mm::Manifest const& item ) { return iter->name == item.Name; } );
+    bool isStillInFolder = std::any_of( manifestList.begin(), manifestList.end(), [iter]( mm::Manifest const& item ) { return iter->name == item.Name.xml_content; } );
     if( !isStillInFolder ) {
       iter = dataList_.erase( iter );
       uiTableModelRowDeleted( uiModel_, row );
@@ -274,7 +274,7 @@ void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList 
   // check for added items
   row = 0;
   for( auto iter = manifestList.begin(); iter != manifestList.end(); iter++, row++ ) {
-    bool isAlreadyInList = std::any_of( dataList_.begin(), dataList_.end(), [iter]( ModLinksModel::Data const& item ) { return iter->Name == item.name; } );
+    bool isAlreadyInList = std::any_of( dataList_.begin(), dataList_.end(), [iter]( ModLinksModel::Data const& item ) { return iter->Name.xml_content == item.name; } );
     if( !isAlreadyInList ) {
       // todo: fixme: actually insertion at the correct spot
       ModLinksModel::Data newData = fromXml( *iter );
@@ -286,7 +286,7 @@ void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList 
   row = 0;
   for( auto iter = dataList_.begin(); iter != dataList_.end(); iter++, row++ ) {
     bool changedItem = std::any_of( manifestList.begin(), manifestList.end(), [iter]( mm::Manifest const& item ) {
-      return ( iter->name == item.Name ) && isDifferent( *iter, item );
+      return ( iter->name == item.Name.xml_content ) && isDifferent( *iter, item );
     } );
     if( changedItem ) {
       uiTableModelRowChanged( uiModel_, row );
@@ -301,99 +301,99 @@ void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList 
 
 SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::Data fromXml( mm::Manifest const& manifest ) {
   SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::Data ret;
-  ret.name = manifest.Name.value();
+  ret.name = manifest.Name.xml_content.get();
   if( manifest.DisplayName.has_value() ) {
-    ret.displayName = manifest.DisplayName.value();
+    ret.displayName = manifest.DisplayName.value().xml_content;
   } else {
     ret.displayName = ret.name;
   }
-  ret.description = manifest.Description;
-  ret.version = SFG::SystemSimulator::LuigiInterface::Types::Version::fromString( manifest.Version.value() );
+  ret.description = manifest.Description.xml_content;
+  ret.version = SFG::SystemSimulator::LuigiInterface::Types::Version::fromString( manifest.Version.xml_content.get() );
   if( manifest.Links.has_value() ) {
     // platform links found
-    ret.links.linux.sha = manifest.Links.value().Linux.SHA256.value().value();
-    ret.links.linux.link = manifest.Links.value().Linux.xml_content.value();
-    ret.links.mac.sha = manifest.Links.value().Mac.SHA256.value().value();
-    ret.links.mac.link = manifest.Links.value().Mac.xml_content.value();
-    ret.links.windows.sha = manifest.Links.value().Windows.SHA256.value().value();
-    ret.links.windows.link = manifest.Links.value().Windows.xml_content.value();
+    ret.links.linux.sha = manifest.Links.value().Linux.SHA256.get().get();
+    ret.links.linux.link = manifest.Links.value().Linux.xml_content.get();
+    ret.links.mac.sha = manifest.Links.value().Mac.SHA256.get().get();
+    ret.links.mac.link = manifest.Links.value().Mac.xml_content.get();
+    ret.links.windows.sha = manifest.Links.value().Windows.SHA256.get().get();
+    ret.links.windows.link = manifest.Links.value().Windows.xml_content.get();
   } else if( manifest.Link.has_value() ) {
     // universal link found
-    ret.links.linux.sha = manifest.Link.value().SHA256.value().value();
-    ret.links.linux.link = manifest.Link.value().xml_content.value();
-    ret.links.mac.sha = manifest.Link.value().SHA256.value().value();
-    ret.links.mac.link = manifest.Link.value().xml_content.value();
-    ret.links.windows.sha = manifest.Link.value().SHA256.value().value();
-    ret.links.windows.link = manifest.Link.value().xml_content.value();
+    ret.links.linux.sha = manifest.Link.value().SHA256.get().get();
+    ret.links.linux.link = manifest.Link.value().xml_content.get();
+    ret.links.mac.sha = manifest.Link.value().SHA256.get().get();
+    ret.links.mac.link = manifest.Link.value().xml_content.get();
+    ret.links.windows.sha = manifest.Link.value().SHA256.get().get();
+    ret.links.windows.link = manifest.Link.value().xml_content.get();
   }
   for( auto const& dependency : manifest.Dependencies.Dependency ) {
-    ret.dependencies.push_back( dependency.value() );
+    ret.dependencies.push_back( dependency.xml_content.get() );
   }
-  ret.repository = manifest.Repository.value();
-  // if( manifest.ReadMe.has_value() ) {
-  //   ret.readme = manifest.ReadMe.value().value();
-  // }
+  ret.repository = manifest.Repository.xml_content.get();
+  if( manifest.ReadMe.has_value() ) {
+    ret.readme = manifest.ReadMe.value().xml_content.get();
+  }
   if( manifest.Issues.has_value() ) {
-    ret.issues = manifest.Issues.value().value();
+    ret.issues = manifest.Issues.value().xml_content.get();
   }
   if( manifest.Integrations.has_value() ) {
     for( auto const& integration : manifest.Integrations.value().Integration ) {
-      ret.integrations.push_back( integration.value() );
+      ret.integrations.push_back( integration.xml_content.get() );
     }
   }
   if( manifest.Tags.has_value() ) {
     for( auto const& tag : manifest.Tags.value().Tag ) {
-      ret.tags.push_back( tag );
+      ret.tags.push_back( tag.xml_content );
     }
   }
   if( manifest.Authors.has_value() ) {
     for( auto const& author : manifest.Authors.value().Author ) {
-      ret.authors.push_back( author );
+      ret.authors.push_back( author.xml_content );
     }
   }
   return ret;
 }
 
 bool isDifferent( SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::Data const& a, mm::Manifest const& b ) {
-  if( a.name != b.Name ) {
+  if( a.name != b.Name.xml_content.get() ) {
     return true;
   }
   if( b.DisplayName.has_value() ) {
-    if( a.displayName != b.DisplayName.value() ) {
+    if( a.displayName != b.DisplayName.value().xml_content ) {
       return true;
     }
   }
-  if( a.description != b.Description ) {
+  if( a.description != b.Description.xml_content ) {
     return true;
   }
-  if( a.version.toString() != b.Version ) {
+  if( a.version.toString() != b.Version.xml_content.get() ) {
     return true;
   }
   if( b.Links.has_value() ) {
-    if( a.links.linux.link != b.Links.value().Linux.xml_content ) {
+    if( a.links.linux.link != b.Links.value().Linux.xml_content.get() ) {
       return true;
     }
-    if( a.links.linux.sha != b.Links.value().Linux.SHA256.value() ) {
+    if( a.links.linux.sha != b.Links.value().Linux.SHA256.get().get() ) {
       return true;
     }
-    if( a.links.mac.link != b.Links.value().Mac.xml_content ) {
+    if( a.links.mac.link != b.Links.value().Mac.xml_content.get() ) {
       return true;
     }
-    if( a.links.mac.sha != b.Links.value().Mac.SHA256.value() ) {
+    if( a.links.mac.sha != b.Links.value().Mac.SHA256.get().get() ) {
       return true;
     }
-    if( a.links.windows.link != b.Links.value().Windows.xml_content ) {
+    if( a.links.windows.link != b.Links.value().Windows.xml_content.get() ) {
       return true;
     }
-    if( a.links.windows.sha != b.Links.value().Windows.SHA256.value() ) {
+    if( a.links.windows.sha != b.Links.value().Windows.SHA256.get().get() ) {
       return true;
     }
   }
   if( b.Link.has_value() ) {
-    if( a.links.linux.link != b.Link.value().xml_content ) {
+    if( a.links.linux.link != b.Link.value().xml_content.get() ) {
       return true;
     }
-    if( a.links.linux.sha != b.Link.value().SHA256.value() ) {
+    if( a.links.linux.sha != b.Link.value().SHA256.get().get() ) {
       return true;
     }
   }
@@ -401,12 +401,12 @@ bool isDifferent( SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::D
     return true;
   } else {
     for( size_t i = 0; i < a.dependencies.size(); i++ ) {
-      if( a.dependencies[i] != b.Dependencies.Dependency[i] ) {
+      if( a.dependencies[i] != b.Dependencies.Dependency[i].xml_content.get() ) {
         return true;
       }
     }
   }
-  if( a.repository != b.Repository ) {
+  if( a.repository != b.Repository.xml_content.get() ) {
     return true;
   }
   // if( b.ReadMe.has_value() ) {
@@ -415,7 +415,7 @@ bool isDifferent( SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::D
   //   }
   // }
   if( b.Issues.has_value() ) {
-    if( a.issues != b.Issues.value() ) {
+    if( a.issues != b.Issues.value().xml_content.get() ) {
       return true;
     }
   }
@@ -424,7 +424,7 @@ bool isDifferent( SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::D
       return true;
     } else {
       for( size_t i = 0; i < a.integrations.size(); i++ ) {
-        if( a.integrations[i] != b.Integrations.value().Integration[i] ) {
+        if( a.integrations[i] != b.Integrations.value().Integration[i].xml_content.get() ) {
           return true;
         }
       }
@@ -437,7 +437,7 @@ bool isDifferent( SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::D
       return true;
     } else {
       for( size_t i = 0; i < a.tags.size(); i++ ) {
-        if( a.tags[i] != b.Tags.value().Tag[i] ) {
+        if( a.tags[i] != b.Tags.value().Tag[i].xml_content ) {
           return true;
         }
       }
@@ -450,7 +450,7 @@ bool isDifferent( SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::D
       return true;
     } else {
       for( size_t i = 0; i < a.authors.size(); i++ ) {
-        if( a.authors[i] != b.Authors.value().Author[i] ) {
+        if( a.authors[i] != b.Authors.value().Author[i].xml_content ) {
           return true;
         }
       }

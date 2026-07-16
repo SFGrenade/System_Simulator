@@ -20,14 +20,16 @@ using LinkStringType = rfl::Pattern< R"(https?://.*)", "LinkStringType" >;
 using ShaStringType = rfl::Pattern< R"([0-9a-fA-F]{64})", "ShaStringType" >;
 using NameStringType = rfl::Pattern< R"([a-zA-Z][^\\/:*?<>"|]+)", "NameStringType" >;
 
-using Author = mm::CollapsedString;
+struct Author {
+  mm::CollapsedString xml_content{};
+};
 struct AuthorsType {
   std::vector< mm::Author > Author{};
 };
 using AuthorsBase = mm::AuthorsType;
 using Authors = std::optional< mm::AuthorsBase >;
 
-enum struct Tag {
+enum struct TagEnum {
   Accessibility,
   Boss,
   Charm,
@@ -39,28 +41,39 @@ enum struct Tag {
   Optimization,
   Utility,
 };
+struct Tag {
+  mm::TagEnum xml_content{};
+};
 struct TagsType {
   std::vector< mm::Tag > Tag{};
 };
-using TagsBase = mm::TagsType;
-using Tags = std::optional< mm::TagsBase >;
+using Tags = std::optional< mm::TagsType >;
 
-using Integration = mm::NameStringType;
+struct Integration {
+  mm::NameStringType xml_content{};
+};
 struct IntegrationsType {
   std::vector< mm::Integration > Integration{};
 };
-using IntegrationsBase = mm::IntegrationsType;
-using Integrations = std::optional< mm::IntegrationsBase >;
+using Integrations = std::optional< mm::IntegrationsType >;
 
-using IssuesBase = LinkStringType;
+struct IssuesBase {
+  mm::LinkStringType xml_content{};
+};
 using Issues = std::optional< mm::IssuesBase >;
 
-using ReadMeBase = LinkStringType;
+struct ReadMeBase {
+  mm::LinkStringType xml_content{};
+};
 using ReadMe = std::optional< mm::ReadMeBase >;
 
-using Repository = LinkStringType;
+struct Repository {
+  mm::LinkStringType xml_content{};
+};
 
-using Dependency = mm::NameStringType;
+struct Dependency {
+  mm::NameStringType xml_content{};
+};
 struct DependenciesType {
   std::vector< mm::Dependency > Dependency{};
 };
@@ -76,15 +89,22 @@ struct LinksType {
   mm::SingleLinkType Windows{};
 };
 // choice between then, so make both optional
-using LinkBase = mm::SingleLinkType;
-using Link = std::optional< mm::LinkBase >;
-using LinksBase = mm::LinksType;
-using Links = std::optional< mm::LinksBase >;
+using Link = std::optional< mm::SingleLinkType >;
+using Links = std::optional< mm::LinksType >;
 
-using Version = mm::VersionStringType;
-using Description = std::string;
-using DisplayName = std::optional< mm::CollapsedString >;
-using Name = mm::NameStringType;
+struct Version {
+  mm::VersionStringType xml_content{};
+};
+struct Description {
+  std::string xml_content{};
+};
+struct DisplayNameType {
+  mm::CollapsedString xml_content{};
+};
+using DisplayName = std::optional< mm::DisplayNameType >;
+struct Name {
+  mm::NameStringType xml_content{};
+};
 
 struct Manifest {
   mm::Name Name{};
@@ -95,7 +115,7 @@ struct Manifest {
   mm::Link Link{};
   mm::Dependencies Dependencies{};
   mm::Repository Repository{};
-  // mm::ReadMe ReadMe{};
+  mm::ReadMe ReadMe{};
   mm::Issues Issues{};
   mm::Integrations Integrations{};
   mm::Tags Tags{};
@@ -108,8 +128,8 @@ struct ModLinks {
 
 /* FORMATTING */
 template <>
-struct fmt::formatter< mm::Tag > : formatter< std::string > {
-  auto format( mm::Tag in, format_context& ctx ) const -> format_context::iterator;
+struct fmt::formatter< mm::TagEnum > : formatter< std::string > {
+  auto format( mm::TagEnum in, format_context& ctx ) const -> format_context::iterator;
 };
 template <>
 struct fmt::formatter< mm::SingleLinkType > : formatter< std::string > {
@@ -124,5 +144,46 @@ struct fmt::formatter< mm::NameStringType > : formatter< std::string > {
   auto format( mm::NameStringType in, format_context& ctx ) const -> format_context::iterator;
 };
 
-/* COMPARISONS */
-bool isDifferent( mm::Manifest const& a, mm::Manifest const& b );
+#pragma region Comparisons
+
+bool operator==( mm::Author const& a, mm::Author const& b );
+bool operator==( mm::AuthorsType const& a, mm::AuthorsType const& b );
+bool operator==( mm::Tag const& a, mm::Tag const& b );
+bool operator==( mm::TagsType const& a, mm::TagsType const& b );
+bool operator==( mm::Integration const& a, mm::Integration const& b );
+bool operator==( mm::IntegrationsType const& a, mm::IntegrationsType const& b );
+bool operator==( mm::IssuesBase const& a, mm::IssuesBase const& b );
+bool operator==( mm::ReadMeBase const& a, mm::ReadMeBase const& b );
+bool operator==( mm::Repository const& a, mm::Repository const& b );
+bool operator==( mm::Dependency const& a, mm::Dependency const& b );
+bool operator==( mm::DependenciesType const& a, mm::DependenciesType const& b );
+bool operator==( mm::SingleLinkType const& a, mm::SingleLinkType const& b );
+bool operator==( mm::LinksType const& a, mm::LinksType const& b );
+bool operator==( mm::Version const& a, mm::Version const& b );
+bool operator==( mm::Description const& a, mm::Description const& b );
+bool operator==( mm::DisplayNameType const& a, mm::DisplayNameType const& b );
+bool operator==( mm::Name const& a, mm::Name const& b );
+bool operator==( mm::Manifest const& a, mm::Manifest const& b );
+bool operator==( mm::ModLinks const& a, mm::ModLinks const& b );
+
+bool operator!=( mm::Author const& a, mm::Author const& b );
+bool operator!=( mm::AuthorsType const& a, mm::AuthorsType const& b );
+bool operator!=( mm::Tag const& a, mm::Tag const& b );
+bool operator!=( mm::TagsType const& a, mm::TagsType const& b );
+bool operator!=( mm::Integration const& a, mm::Integration const& b );
+bool operator!=( mm::IntegrationsType const& a, mm::IntegrationsType const& b );
+bool operator!=( mm::IssuesBase const& a, mm::IssuesBase const& b );
+bool operator!=( mm::ReadMeBase const& a, mm::ReadMeBase const& b );
+bool operator!=( mm::Repository const& a, mm::Repository const& b );
+bool operator!=( mm::Dependency const& a, mm::Dependency const& b );
+bool operator!=( mm::DependenciesType const& a, mm::DependenciesType const& b );
+bool operator!=( mm::SingleLinkType const& a, mm::SingleLinkType const& b );
+bool operator!=( mm::LinksType const& a, mm::LinksType const& b );
+bool operator!=( mm::Version const& a, mm::Version const& b );
+bool operator!=( mm::Description const& a, mm::Description const& b );
+bool operator!=( mm::DisplayNameType const& a, mm::DisplayNameType const& b );
+bool operator!=( mm::Name const& a, mm::Name const& b );
+bool operator!=( mm::Manifest const& a, mm::Manifest const& b );
+bool operator!=( mm::ModLinks const& a, mm::ModLinks const& b );
+
+#pragma endregion Comparisons
