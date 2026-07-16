@@ -15,13 +15,13 @@ namespace LuigiInterface {
 
 class FileDownloader {
   public:
-  explicit FileDownloader();
-  ~FileDownloader();
+  FileDownloader() = delete;
+  FileDownloader( FileDownloader const& ) = delete;
+  FileDownloader( FileDownloader&& ) = delete;
+  FileDownloader& operator=( FileDownloader const& ) = delete;
+  FileDownloader& operator=( FileDownloader&& ) = delete;
 
-  std::optional< std::ifstream > downloadFile( std::string const& address, std::string const& path, std::filesystem::path const& filename );
-
-  private:
-  SFG::SystemSimulator::Logger::spdlogger logger_;
+  static std::optional< std::ifstream > downloadFile( std::string const& address, std::string const& path, std::filesystem::path const& filename );
 };
 
 }  // namespace LuigiInterface

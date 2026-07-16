@@ -6,28 +6,13 @@
 // Library includes
 #include <httplib.h>
 
-// C++ includes
-#include <filesystem>
-#include <sstream>
-
 namespace SFG {
 namespace SystemSimulator {
 namespace LuigiInterface {
 
-FileDownloader::FileDownloader() : logger_( SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "FileDownloader" ) ) {
-  logger_->trace( fmt::runtime( "FileDownloader()" ) );
-
-  logger_->trace( fmt::runtime( "FileDownloader()~" ) );
-}
-
-FileDownloader::~FileDownloader() {
-  logger_->trace( fmt::runtime( "~FileDownloader()" ) );
-
-  logger_->trace( fmt::runtime( "~FileDownloader()~" ) );
-}
-
 std::optional< std::ifstream > FileDownloader::downloadFile( std::string const& address, std::string const& path, std::filesystem::path const& filename ) {
-  Logger::ScopedLogger _( logger_,
+  SFG::SystemSimulator::Logger::spdlogger logger = SFG::SystemSimulator::Logger::LoggerFactory::get_logger( "FileDownloader" );
+  Logger::ScopedLogger _( logger,
                           fmt::format( fmt::runtime( "downloadFile( address: {:?}, path: {:?}, filename: {:?} )" ), address, path, filename.string() ),
                           fmt::format( fmt::runtime( "downloadFile()~" ) ) );
 
@@ -46,7 +31,7 @@ std::optional< std::ifstream > FileDownloader::downloadFile( std::string const& 
       return std::ifstream( filename );
     }
   } catch( std::exception& e ) {
-    logger_->error( fmt::runtime( "downloadFile - Exception: {:s}" ), e.what() );
+    logger->error( fmt::runtime( "downloadFile - Exception: {:s}" ), e.what() );
   }
   return {};
 }

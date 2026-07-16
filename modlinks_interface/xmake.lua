@@ -23,10 +23,12 @@ target( "Luigi-Interface" )
 
     add_headerfiles( "include/(SFG/SystemSimulator/LuigiInterface/*.h)" )
     add_headerfiles( "include/(SFG/SystemSimulator/LuigiInterface/Models/*.h)" )
+    add_headerfiles( "include/(SFG/SystemSimulator/LuigiInterface/Types/*.h)" )
     add_headerfiles( "include/(SFG/SystemSimulator/LuigiInterface/UI/*.h)" )
 
     add_files( "src/*.cpp" )
     add_files( "src/Models/*.cpp" )
+    add_files( "src/Types/*.cpp" )
     add_files( "src/UI/*.cpp" )
     remove_files( "src/main.cpp" )
 

@@ -2,8 +2,8 @@
 
 // Project includes
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
+#include <SFG/SystemSimulator/LuigiInterface/Models/AbstractModel.h>
 #include <SFG/SystemSimulator/LuigiInterface/libui_all.h>
-#include <SFG/SystemSimulator/LuigiInterface/models/AbstractModel.h>
 
 // C++ includes
 #include <cstdint>

@@ -4,12 +4,6 @@
 #include <SFG/SystemSimulator/Logger/scopedLogger.h>
 #include <SFG/SystemSimulator/LuigiInterface/FileDownloader.h>
 
-// Library includes
-#include <rfl/xml.hpp>
-
-// C++ includes
-#include <stdexcept>
-
 namespace SFG {
 namespace SystemSimulator {
 namespace LuigiInterface {
@@ -76,24 +70,19 @@ uiTableValue* ModLinksModel::getCell( AbstractModel::index_t row, AbstractModel:
     }
     std::string ret;
     if( column == 0 ) {
-      if( item.DisplayName.has_value() )
-        return uiNewTableValueString( item.DisplayName.value().c_str() );
-      return uiNewTableValueString( item.Name.value().c_str() );
+      return uiNewTableValueString( item.displayName.c_str() );
     } else if( column == 1 ) {
-      return uiNewTableValueString( item.Description.c_str() );
+      return uiNewTableValueString( item.description.c_str() );
     } else if( column == 2 ) {
-      return uiNewTableValueString( item.Version.value().c_str() );
+      return uiNewTableValueString( item.version.toString().c_str() );
     } else if( column == 3 ) {
-      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.Dependencies.Dependency, ", " ) ).c_str() );
+      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.dependencies, ", " ) ).c_str() );
     } else if( column == 4 ) {
-      std::string tmp = item.Integrations.has_value() ? fmt::format( fmt::runtime( "{}" ), fmt::join( item.Integrations.value().Integration, ", " ) ) : "";
-      return uiNewTableValueString( tmp.c_str() );
+      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.integrations, ", " ) ).c_str() );
     } else if( column == 5 ) {
-      std::string tmp = item.Tags.has_value() ? fmt::format( fmt::runtime( "{}" ), fmt::join( item.Tags.value().Tag, ", " ) ) : "";
-      return uiNewTableValueString( tmp.c_str() );
+      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.tags, ", " ) ).c_str() );
     } else if( column == 6 ) {
-      std::string tmp = item.Authors.has_value() ? fmt::format( fmt::runtime( "{}" ), fmt::join( item.Authors.value().Author, ", " ) ) : "";
-      return uiNewTableValueString( tmp.c_str() );
+      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.authors, ", " ) ).c_str() );
     }
   }
   return nullptr;
@@ -102,8 +91,7 @@ uiTableValue* ModLinksModel::getCell( AbstractModel::index_t row, AbstractModel:
 void ModLinksModel::setupFromOnline() {
   Logger::ScopedLogger _( logger_, fmt::format( fmt::runtime( "setupFromOnline()" ) ), fmt::format( fmt::runtime( "setupFromOnline()~" ) ) );
 
-  FileDownloader fileDownloader;
-  std::optional< std::ifstream > file = fileDownloader.downloadFile( SERVER_ADDRESS, SERVER_PATH, std::filesystem::temp_directory_path() / "ModLinks.xml" );
+  std::optional< std::ifstream > file = FileDownloader::downloadFile( SERVER_ADDRESS, SERVER_PATH, std::filesystem::temp_directory_path() / "ModLinks.xml" );
   if( !file.has_value() ) {
     return setupFromCache();
   }
@@ -256,12 +244,12 @@ void ModLinksModel::setupFromCache() {
   integrateNewList( tmp );
 }
 
-void ModLinksModel::integrateNewList( std::vector< ModLinksModel::Data >& dataList ) {
+void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList ) {
   Logger::ScopedLogger _( logger_,
-                          fmt::format( fmt::runtime( "integrateNewList( dataList: [{:d} items] )" ), dataList.size() ),
+                          fmt::format( fmt::runtime( "integrateNewList( manifestList: [{:d} items] )" ), manifestList.size() ),
                           fmt::format( fmt::runtime( "integrateNewList()~" ) ) );
 
-  std::sort( dataList.begin(), dataList.end(), []( ModLinksModel::Data const& a, ModLinksModel::Data const& b ) {
+  std::sort( manifestList.begin(), manifestList.end(), []( mm::Manifest const& a, mm::Manifest const& b ) {
     std::string aName = a.Name.value();
     std::string bName = b.Name.value();
     std::transform( aName.begin(), aName.end(), aName.begin(), []( unsigned char c ) { return std::tolower( c ); } );
@@ -274,7 +262,7 @@ void ModLinksModel::integrateNewList( std::vector< ModLinksModel::Data >& dataLi
   // check for removed items
   row = 0;
   for( auto iter = dataList_.begin(); iter != dataList_.end(); ) {
-    bool isStillInFolder = std::any_of( dataList.begin(), dataList.end(), [iter]( ModLinksModel::Data const& item ) { return iter->Name == item.Name; } );
+    bool isStillInFolder = std::any_of( manifestList.begin(), manifestList.end(), [iter]( mm::Manifest const& item ) { return iter->name == item.Name; } );
     if( !isStillInFolder ) {
       iter = dataList_.erase( iter );
       uiTableModelRowDeleted( uiModel_, row );
@@ -285,18 +273,20 @@ void ModLinksModel::integrateNewList( std::vector< ModLinksModel::Data >& dataLi
   }
   // check for added items
   row = 0;
-  for( auto iter = dataList.begin(); iter != dataList.end(); iter++, row++ ) {
-    bool isAlreadyInList = std::any_of( dataList_.begin(), dataList_.end(), [iter]( ModLinksModel::Data const& item ) { return iter->Name == item.Name; } );
+  for( auto iter = manifestList.begin(); iter != manifestList.end(); iter++, row++ ) {
+    bool isAlreadyInList = std::any_of( dataList_.begin(), dataList_.end(), [iter]( ModLinksModel::Data const& item ) { return iter->Name == item.name; } );
     if( !isAlreadyInList ) {
-      dataList_.push_back( *iter );
+      // todo: fixme: actually insertion at the correct spot
+      ModLinksModel::Data newData = fromXml( *iter );
+      dataList_.push_back( newData );
       uiTableModelRowInserted( uiModel_, dataList_.size() - 1 );
     }
   }
   // check for changed items
   row = 0;
   for( auto iter = dataList_.begin(); iter != dataList_.end(); iter++, row++ ) {
-    bool changedItem = std::any_of( dataList.begin(), dataList.end(), [iter]( ModLinksModel::Data const& item ) {
-      return ( iter->Name == item.Name ) && isDifferent( *iter, item );
+    bool changedItem = std::any_of( manifestList.begin(), manifestList.end(), [iter]( mm::Manifest const& item ) {
+      return ( iter->name == item.Name ) && isDifferent( *iter, item );
     } );
     if( changedItem ) {
       uiTableModelRowChanged( uiModel_, row );
@@ -309,132 +299,164 @@ void ModLinksModel::integrateNewList( std::vector< ModLinksModel::Data >& dataLi
 }  // namespace SystemSimulator
 }  // namespace SFG
 
-auto fmt::formatter< mm::Tag >::format( mm::Tag in, format_context& ctx ) const -> format_context::iterator {
-  std::string ret = "##-UNKNOWN-##";
-  switch( in ) {
-    case mm::Tag::Accessibility:
-      ret = "Accessibility";
-      break;
-    case mm::Tag::Boss:
-      ret = "Boss";
-      break;
-    case mm::Tag::Charm:
-      ret = "Charm";
-      break;
-    case mm::Tag::Cosmetic:
-      ret = "Cosmetic";
-      break;
-    case mm::Tag::Expansion:
-      ret = "Expansion";
-      break;
-    case mm::Tag::Gameplay:
-      ret = "Gameplay";
-      break;
-    case mm::Tag::Joke:
-      ret = "Joke";
-      break;
-    case mm::Tag::Library:
-      ret = "Library";
-      break;
-    case mm::Tag::Optimization:
-      ret = "Optimization";
-      break;
-    case mm::Tag::Utility:
-      ret = "Utility";
-      break;
+SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::Data fromXml( mm::Manifest const& manifest ) {
+  SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::Data ret;
+  ret.name = manifest.Name.value();
+  if( manifest.DisplayName.has_value() ) {
+    ret.displayName = manifest.DisplayName.value();
+  } else {
+    ret.displayName = ret.name;
   }
-  return formatter< std::string >::format( ret, ctx );
+  ret.description = manifest.Description;
+  ret.version = SFG::SystemSimulator::LuigiInterface::Types::Version::fromString( manifest.Version.value() );
+  if( manifest.Links.has_value() ) {
+    // platform links found
+    ret.links.linux.sha = manifest.Links.value().Linux.SHA256.value().value();
+    ret.links.linux.link = manifest.Links.value().Linux.xml_content.value();
+    ret.links.mac.sha = manifest.Links.value().Mac.SHA256.value().value();
+    ret.links.mac.link = manifest.Links.value().Mac.xml_content.value();
+    ret.links.windows.sha = manifest.Links.value().Windows.SHA256.value().value();
+    ret.links.windows.link = manifest.Links.value().Windows.xml_content.value();
+  } else if( manifest.Link.has_value() ) {
+    // universal link found
+    ret.links.linux.sha = manifest.Link.value().SHA256.value().value();
+    ret.links.linux.link = manifest.Link.value().xml_content.value();
+    ret.links.mac.sha = manifest.Link.value().SHA256.value().value();
+    ret.links.mac.link = manifest.Link.value().xml_content.value();
+    ret.links.windows.sha = manifest.Link.value().SHA256.value().value();
+    ret.links.windows.link = manifest.Link.value().xml_content.value();
+  }
+  for( auto const& dependency : manifest.Dependencies.Dependency ) {
+    ret.dependencies.push_back( dependency.value() );
+  }
+  ret.repository = manifest.Repository.value();
+  // if( manifest.ReadMe.has_value() ) {
+  //   ret.readme = manifest.ReadMe.value().value();
+  // }
+  if( manifest.Issues.has_value() ) {
+    ret.issues = manifest.Issues.value().value();
+  }
+  if( manifest.Integrations.has_value() ) {
+    for( auto const& integration : manifest.Integrations.value().Integration ) {
+      ret.integrations.push_back( integration.value() );
+    }
+  }
+  if( manifest.Tags.has_value() ) {
+    for( auto const& tag : manifest.Tags.value().Tag ) {
+      ret.tags.push_back( tag );
+    }
+  }
+  if( manifest.Authors.has_value() ) {
+    for( auto const& author : manifest.Authors.value().Author ) {
+      ret.authors.push_back( author );
+    }
+  }
+  return ret;
 }
 
-auto fmt::formatter< mm::SingleLinkType >::format( mm::SingleLinkType in, format_context& ctx ) const -> format_context::iterator {
-  std::string ret = fmt::format( fmt::runtime( "{:s} ({:s})" ), in.xml_content.value(), in.SHA256.value().value() );
-  return formatter< std::string >::format( ret, ctx );
-}
-
-auto fmt::formatter< mm::LinksType >::format( mm::LinksType in, format_context& ctx ) const -> format_context::iterator {
-  std::string ret = fmt::format( fmt::runtime( "Linux: {}, Mac: {}, Windows: {}" ), in.Linux, in.Mac, in.Windows );
-  return formatter< std::string >::format( ret, ctx );
-}
-
-auto fmt::formatter< mm::NameStringType >::format( mm::NameStringType in, format_context& ctx ) const -> format_context::iterator {
-  std::string ret = fmt::format( fmt::runtime( "{}" ), in.value() );
-  return formatter< std::string >::format( ret, ctx );
-}
-
-bool isDifferent( mm::Manifest const& a, mm::Manifest const& b ) {
-  if( a.Name != b.Name ) {
+bool isDifferent( SFG::SystemSimulator::LuigiInterface::Models::ModLinksModel::Data const& a, mm::Manifest const& b ) {
+  if( a.name != b.Name ) {
     return true;
   }
-  if( a.DisplayName != b.DisplayName ) {
-    return true;
-  }
-  if( a.Description != b.Description ) {
-    return true;
-  }
-  if( a.Version != b.Version ) {
-    return true;
-  }
-  if( a.Links.has_value() != b.Links.has_value() ) {
-    return true;
-  } else if( a.Links.has_value() && b.Links.has_value() ) {
-    if( a.Links.value().Linux.xml_content != b.Links.value().Linux.xml_content ) {
-      return true;
-    }
-    if( a.Links.value().Linux.SHA256.value() != b.Links.value().Linux.SHA256.value() ) {
-      return true;
-    }
-    if( a.Links.value().Mac.xml_content != b.Links.value().Mac.xml_content ) {
-      return true;
-    }
-    if( a.Links.value().Mac.SHA256.value() != b.Links.value().Mac.SHA256.value() ) {
-      return true;
-    }
-    if( a.Links.value().Windows.xml_content != b.Links.value().Windows.xml_content ) {
-      return true;
-    }
-    if( a.Links.value().Windows.SHA256.value() != b.Links.value().Windows.SHA256.value() ) {
+  if( b.DisplayName.has_value() ) {
+    if( a.displayName != b.DisplayName.value() ) {
       return true;
     }
   }
-  if( a.Link.has_value() != b.Link.has_value() ) {
+  if( a.description != b.Description ) {
     return true;
-  } else if( a.Link.has_value() && b.Link.has_value() ) {
-    if( a.Link.value().xml_content != b.Link.value().xml_content ) {
+  }
+  if( a.version.toString() != b.Version ) {
+    return true;
+  }
+  if( b.Links.has_value() ) {
+    if( a.links.linux.link != b.Links.value().Linux.xml_content ) {
       return true;
     }
-    if( a.Link.value().SHA256.value() != b.Link.value().SHA256.value() ) {
+    if( a.links.linux.sha != b.Links.value().Linux.SHA256.value() ) {
       return true;
     }
-  }
-  if( a.Dependencies.Dependency != b.Dependencies.Dependency ) {
-    return true;
-  }
-  if( a.Repository != b.Repository ) {
-    return true;
-  }
-  if( a.Issues != b.Issues ) {
-    return true;
-  }
-  if( a.Integrations.has_value() != b.Integrations.has_value() ) {
-    return true;
-  } else if( a.Integrations.has_value() && b.Integrations.has_value() ) {
-    if( a.Integrations.value().Integration != b.Integrations.value().Integration ) {
+    if( a.links.mac.link != b.Links.value().Mac.xml_content ) {
       return true;
     }
-  }
-  if( a.Tags.has_value() != b.Tags.has_value() ) {
-    return true;
-  } else if( a.Tags.has_value() && b.Tags.has_value() ) {
-    if( a.Tags.value().Tag != b.Tags.value().Tag ) {
+    if( a.links.mac.sha != b.Links.value().Mac.SHA256.value() ) {
+      return true;
+    }
+    if( a.links.windows.link != b.Links.value().Windows.xml_content ) {
+      return true;
+    }
+    if( a.links.windows.sha != b.Links.value().Windows.SHA256.value() ) {
       return true;
     }
   }
-  if( a.Authors.has_value() != b.Authors.has_value() ) {
-    return true;
-  } else if( a.Authors.has_value() && b.Authors.has_value() ) {
-    if( a.Authors.value().Author != b.Authors.value().Author ) {
+  if( b.Link.has_value() ) {
+    if( a.links.linux.link != b.Link.value().xml_content ) {
       return true;
     }
+    if( a.links.linux.sha != b.Link.value().SHA256.value() ) {
+      return true;
+    }
+  }
+  if( a.dependencies.size() != b.Dependencies.Dependency.size() ) {
+    return true;
+  } else {
+    for( size_t i = 0; i < a.dependencies.size(); i++ ) {
+      if( a.dependencies[i] != b.Dependencies.Dependency[i] ) {
+        return true;
+      }
+    }
+  }
+  if( a.repository != b.Repository ) {
+    return true;
+  }
+  // if( b.ReadMe.has_value() ) {
+  //   if( a.readme != b.ReadMe.value() ) {
+  //     return true;
+  //   }
+  // }
+  if( b.Issues.has_value() ) {
+    if( a.issues != b.Issues.value() ) {
+      return true;
+    }
+  }
+  if( b.Integrations.has_value() ) {
+    if( a.integrations.size() != b.Integrations.value().Integration.size() ) {
+      return true;
+    } else {
+      for( size_t i = 0; i < a.integrations.size(); i++ ) {
+        if( a.integrations[i] != b.Integrations.value().Integration[i] ) {
+          return true;
+        }
+      }
+    }
+  } else if( a.integrations.size() > 0 ) {
+    return true;
+  }
+  if( b.Tags.has_value() ) {
+    if( a.tags.size() != b.Tags.value().Tag.size() ) {
+      return true;
+    } else {
+      for( size_t i = 0; i < a.tags.size(); i++ ) {
+        if( a.tags[i] != b.Tags.value().Tag[i] ) {
+          return true;
+        }
+      }
+    }
+  } else if( a.tags.size() > 0 ) {
+    return true;
+  }
+  if( b.Authors.has_value() ) {
+    if( a.authors.size() != b.Authors.value().Author.size() ) {
+      return true;
+    } else {
+      for( size_t i = 0; i < a.authors.size(); i++ ) {
+        if( a.authors[i] != b.Authors.value().Author[i] ) {
+          return true;
+        }
+      }
+    }
+  } else if( a.authors.size() > 0 ) {
+    return true;
   }
   return false;
 }
