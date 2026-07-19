@@ -26,8 +26,45 @@ ModLinksModel::~ModLinksModel() {
   logger_->trace( fmt::runtime( "~ModLinksModel()~" ) );
 }
 
+std::set< ModLinksModel::Data > ModLinksModel::getModAndDeps( std::string const& modName ) const {
+  Logger::ScopedLogger _( logger_,
+                          fmt::format( fmt::runtime( "getModAndDeps( modName: {:?} )" ), modName ),
+                          fmt::format( fmt::runtime( "getModAndDeps()~" ) ) );
+
+  auto modIter = std::find_if( dataList_.begin(), dataList_.end(), [modName]( ModLinksModel::Data const& item ) { return item.name == modName; } );
+  if( modIter == dataList_.end() ) {
+    // mod doesn't exist
+    return {};
+  }
+  return getModAndDeps( *modIter );
+}
+
+std::set< ModLinksModel::Data > ModLinksModel::getModAndDeps( ModLinksModel::Data const& mod ) const {
+  Logger::ScopedLogger _( logger_, fmt::format( fmt::runtime( "getModAndDeps( mod: [{:?}] )" ), mod.name ), fmt::format( fmt::runtime( "getModAndDeps()~" ) ) );
+
+  std::set< ModLinksModel::Data > ret{ mod };
+  std::list< ModLinksModel::Data > toCheck{ mod };
+  // go through toCheck and add mod and deps to ret
+  for( auto iter = toCheck.begin(); iter != toCheck.end(); iter++ ) {
+    for( auto const& depName : iter->dependencies ) {
+      if( std::find_if( ret.begin(), ret.end(), [depName]( ModLinksModel::Data const& item ) { return item.name == depName; } ) != ret.end() ) {
+        // dep already added to return set, so already searched
+        continue;
+      }
+      auto depIter = std::find_if( dataList_.begin(), dataList_.end(), [depName]( ModLinksModel::Data const& item ) { return item.name == depName; } );
+      if( depIter == dataList_.end() ) {
+        // dep doesn't exist
+        continue;
+      }
+      toCheck.insert( toCheck.end(), *depIter );
+      ret.insert( *depIter );
+    }
+  }
+  return ret;
+}
+
 AbstractModel::index_t ModLinksModel::columnCount() const {
-  return 7;
+  return 13;
 }
 
 uiTableValueType ModLinksModel::columnType( AbstractModel::index_t column ) const {
@@ -36,21 +73,39 @@ uiTableValueType ModLinksModel::columnType( AbstractModel::index_t column ) cons
       // Name
       return uiTableValueTypeString;
     case 1:
-      // Description
+      // DisplayName
       return uiTableValueTypeString;
     case 2:
-      // Version
+      // Description
       return uiTableValueTypeString;
     case 3:
-      // Dependencies
+      // Version
       return uiTableValueTypeString;
     case 4:
-      // Integrations
+      // Platform Link
       return uiTableValueTypeString;
     case 5:
-      // Tags
+      // Platform SHA256
       return uiTableValueTypeString;
     case 6:
+      // Dependencies
+      return uiTableValueTypeString;
+    case 7:
+      // Repository
+      return uiTableValueTypeString;
+    case 8:
+      // ReadMe
+      return uiTableValueTypeString;
+    case 9:
+      // Issues
+      return uiTableValueTypeString;
+    case 10:
+      // Integrations
+      return uiTableValueTypeString;
+    case 11:
+      // Tags
+      return uiTableValueTypeString;
+    case 12:
       // Authors
       return uiTableValueTypeString;
     default:
@@ -70,18 +125,32 @@ uiTableValue* ModLinksModel::getCell( AbstractModel::index_t row, AbstractModel:
     }
     std::string ret;
     if( column == 0 ) {
-      return uiNewTableValueString( item.displayName.c_str() );
+      return uiNewTableValueString( item.name.c_str() );
     } else if( column == 1 ) {
-      return uiNewTableValueString( item.description.c_str() );
+      return uiNewTableValueString( item.displayName.c_str() );
     } else if( column == 2 ) {
-      return uiNewTableValueString( item.version.toString().c_str() );
+      return uiNewTableValueString( item.description.c_str() );
     } else if( column == 3 ) {
-      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.dependencies, ", " ) ).c_str() );
+      return uiNewTableValueString( item.version.toString().c_str() );
     } else if( column == 4 ) {
-      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.integrations, ", " ) ).c_str() );
+      // todo: platform dependent link
+      return uiNewTableValueString( item.links.windows.link.c_str() );
     } else if( column == 5 ) {
-      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.tags, ", " ) ).c_str() );
+      // todo: platform dependent sha256
+      return uiNewTableValueString( item.links.windows.sha.c_str() );
     } else if( column == 6 ) {
+      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.dependencies, ", " ) ).c_str() );
+    } else if( column == 7 ) {
+      return uiNewTableValueString( item.repository.c_str() );
+    } else if( column == 8 ) {
+      return uiNewTableValueString( item.readme.c_str() );
+    } else if( column == 9 ) {
+      return uiNewTableValueString( item.issues.c_str() );
+    } else if( column == 10 ) {
+      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.integrations, ", " ) ).c_str() );
+    } else if( column == 11 ) {
+      return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.tags, ", " ) ).c_str() );
+    } else if( column == 12 ) {
       return uiNewTableValueString( fmt::format( fmt::runtime( "{}" ), fmt::join( item.authors, ", " ) ).c_str() );
     }
   }
@@ -262,7 +331,8 @@ void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList 
   // check for removed items
   row = 0;
   for( auto iter = dataList_.begin(); iter != dataList_.end(); ) {
-    bool isStillInFolder = std::any_of( manifestList.begin(), manifestList.end(), [iter]( mm::Manifest const& item ) { return iter->name == item.Name.xml_content; } );
+    bool isStillInFolder
+        = std::any_of( manifestList.begin(), manifestList.end(), [iter]( mm::Manifest const& item ) { return iter->name == item.Name.xml_content; } );
     if( !isStillInFolder ) {
       iter = dataList_.erase( iter );
       uiTableModelRowDeleted( uiModel_, row );
@@ -274,7 +344,8 @@ void ModLinksModel::integrateNewList( std::vector< mm::Manifest >& manifestList 
   // check for added items
   row = 0;
   for( auto iter = manifestList.begin(); iter != manifestList.end(); iter++, row++ ) {
-    bool isAlreadyInList = std::any_of( dataList_.begin(), dataList_.end(), [iter]( ModLinksModel::Data const& item ) { return iter->Name.xml_content == item.name; } );
+    bool isAlreadyInList
+        = std::any_of( dataList_.begin(), dataList_.end(), [iter]( ModLinksModel::Data const& item ) { return iter->Name.xml_content == item.name; } );
     if( !isAlreadyInList ) {
       // todo: fixme: actually insertion at the correct spot
       ModLinksModel::Data newData = fromXml( *iter );

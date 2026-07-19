@@ -3,8 +3,7 @@
 // Project includes
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 #include <SFG/SystemSimulator/LuigiInterface/Models/AbstractModel.h>
-#include <SFG/SystemSimulator/LuigiInterface/Models/ModLinksXmlModel.h>
-#include <SFG/SystemSimulator/LuigiInterface/Types/Version.h>
+#include <SFG/SystemSimulator/LuigiInterface/Types/ModManifest.h>
 #include <SFG/SystemSimulator/LuigiInterface/libui_all.h>
 
 // C++ includes
@@ -21,29 +20,14 @@ class ModLinksModel : public AbstractModel {
   static std::string const SERVER_PATH;
 
   public:
-  struct Data {
-    std::string name = "";
-    std::string displayName = "";
-    std::string description = "";
-    Types::Version version{};
-    struct Links {
-      struct Link {
-        std::string sha = "";   // sha256
-        std::string link = "";  // url
-      } linux{}, mac{}, windows{};
-    } links{};
-    std::vector< std::string > dependencies{};
-    std::string repository = "";  // URL
-    std::string readme = "";      // URL
-    std::string issues = "";      // URL
-    std::vector< std::string > integrations{};
-    std::vector< mm::TagEnum > tags{};
-    std::vector< std::string > authors{};
-  };
+  using Data = Types::ModManifest;
 
   public:
   explicit ModLinksModel();
   ~ModLinksModel();
+
+  std::set< ModLinksModel::Data > getModAndDeps( std::string const& modName ) const;
+  std::set< ModLinksModel::Data > getModAndDeps( ModLinksModel::Data const& mod ) const;
 
   public:
   AbstractModel::index_t columnCount() const override;

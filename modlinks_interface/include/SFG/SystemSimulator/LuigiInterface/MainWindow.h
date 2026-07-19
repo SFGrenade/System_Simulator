@@ -24,16 +24,22 @@ class MainWindow {
   uiWindow* window_ = nullptr;
   uiBox* buttonPanel_ = nullptr;
   uiBox* mainPanel_ = nullptr;
-  uiButton* addButton_ = nullptr;
-  uiButton* deleteButton_ = nullptr;
+  uiButton* installButton_ = nullptr;
+  uiButton* disableButton_ = nullptr;
+  uiButton* enableButton_ = nullptr;
+  uiButton* uninstallButton_ = nullptr;
+  uiButton* updateButton_ = nullptr;
   // Models::FolderModel model_;
   Models::ModLinksModel model_;
   // Models::UserModel model_;
   UI::AbstractTable* table_ = nullptr;
 
   private:
-  static void addButtonClicked( uiButton* button, void* context );
-  static void deleteButtonClicked( uiButton* button, void* context );
+  void installButtonClicked();
+  void disableButtonClicked();
+  void enableButtonClicked();
+  void uninstallButtonClicked();
+  void updateButtonClicked();
 };
 
 }  // namespace LuigiInterface

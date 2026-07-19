@@ -16,6 +16,13 @@ struct Version {
 
   static Version fromString( std::string const& str );
   std::string toString() const;
+
+  friend bool operator==( Version const& a, Version const& b );
+  friend bool operator!=( Version const& a, Version const& b );
+  friend bool operator<( Version const& a, Version const& b );
+  friend bool operator>( Version const& a, Version const& b );
+  friend bool operator<=( Version const& a, Version const& b );
+  friend bool operator>=( Version const& a, Version const& b );
 };
 
 }  // namespace Types
