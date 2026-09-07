@@ -1,5 +1,4 @@
-#ifndef AUDIO_INTERFACE_AUDIOIO_H_
-#define AUDIO_INTERFACE_AUDIOIO_H_
+#pragma once
 
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
@@ -16,13 +15,13 @@ class AudioIO {
   struct MySettingsStruct {
     float outputMultiplier;
 
-    PortAudio::PaStream *portAudioStream;
-    PortAudio::PaStreamParameters inputSettings;
-    PortAudio::PaStreamParameters outputSettings;
+    PaStream* portAudioStream;
+    PaStreamParameters inputSettings;
+    PaStreamParameters outputSettings;
     double sampleRate;
     unsigned long framesPerBuffer;
-    PortAudio::PaStreamFlags flags;
-    SFG::SystemSimulator::AudioInterface::NetConnector *netConnector;
+    PaStreamFlags flags;
+    SFG::SystemSimulator::AudioInterface::NetConnector* netConnector;
   };
 
   public:
@@ -37,5 +36,3 @@ class AudioIO {
 }  // namespace AudioInterface
 }  // namespace SystemSimulator
 }  // namespace SFG
-
-#endif /* AUDIO_INTERFACE_AUDIOIO_H_ */

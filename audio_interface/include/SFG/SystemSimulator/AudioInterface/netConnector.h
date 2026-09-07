@@ -1,5 +1,4 @@
-#ifndef AUDIO_INTERFACE_NETCONNECTOR_H_
-#define AUDIO_INTERFACE_NETCONNECTOR_H_
+#pragma once
 
 #include <SFG/SystemSimulator/Configuration/configuration.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
@@ -25,5 +24,3 @@ class NetConnector {
 }  // namespace AudioInterface
 }  // namespace SystemSimulator
 }  // namespace SFG
-
-#endif /* AUDIO_INTERFACE_NETCONNECTOR_H_ */

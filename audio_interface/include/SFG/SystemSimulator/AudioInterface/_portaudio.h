@@ -1,41 +1,38 @@
-#ifndef AUDIO_INTERFACE_PORTAUDIO_H_
-#define AUDIO_INTERFACE_PORTAUDIO_H_
-
-namespace PortAudio {
+#pragma once
 
 #include <portaudio.h>
 
-PaDeviceIndex const noDevice = paNoDevice;
-PaDeviceIndex const useHostApiSpecificDeviceSpecification = paUseHostApiSpecificDeviceSpecification;
+namespace PA {
 
-PaSampleFormat const float32 = paFloat32;
-PaSampleFormat const int32 = paInt32;
-PaSampleFormat const int24 = paInt24;
-PaSampleFormat const int16 = paInt16;
-PaSampleFormat const int8 = paInt8;
-PaSampleFormat const uInt8 = paUInt8;
-PaSampleFormat const customFormat = paCustomFormat;
-PaSampleFormat const nonInterleaved = paNonInterleaved;
+constexpr PaDeviceIndex const noDevice = paNoDevice;
+constexpr PaDeviceIndex const useHostApiSpecificDeviceSpecification = paUseHostApiSpecificDeviceSpecification;
 
-PaError const formatIsSupported = paFormatIsSupported;
+constexpr PaSampleFormat const float32 = paFloat32;
+constexpr PaSampleFormat const int32 = paInt32;
+constexpr PaSampleFormat const int24 = paInt24;
+constexpr PaSampleFormat const int16 = paInt16;
+constexpr PaSampleFormat const int8 = paInt8;
+constexpr PaSampleFormat const uInt8 = paUInt8;
+constexpr PaSampleFormat const customFormat = paCustomFormat;
+constexpr PaSampleFormat const nonInterleaved = paNonInterleaved;
 
-int const framesPerBufferUnspecified = paFramesPerBufferUnspecified;
+constexpr PaError const formatIsSupported = paFormatIsSupported;
 
-PaStreamFlags const noFlag = paNoFlag;
-PaStreamFlags const clipOff = paClipOff;
-PaStreamFlags const ditherOff = paDitherOff;
-PaStreamFlags const neverDropInput = paNeverDropInput;
-PaStreamFlags const primeOutputBuffersUsingStreamCallback = paPrimeOutputBuffersUsingStreamCallback;
-PaStreamFlags const platformSpecificFlags = paPlatformSpecificFlags;
+constexpr int const framesPerBufferUnspecified = paFramesPerBufferUnspecified;
 
-PaStreamCallbackFlags const inputUnderflow = paInputUnderflow;
-PaStreamCallbackFlags const inputOverflow = paInputOverflow;
-PaStreamCallbackFlags const outputUnderflow = paOutputUnderflow;
-PaStreamCallbackFlags const outputOverflow = paOutputOverflow;
-PaStreamCallbackFlags const primingOutput = paPrimingOutput;
+constexpr PaStreamFlags const noFlag = paNoFlag;
+constexpr PaStreamFlags const clipOff = paClipOff;
+constexpr PaStreamFlags const ditherOff = paDitherOff;
+constexpr PaStreamFlags const neverDropInput = paNeverDropInput;
+constexpr PaStreamFlags const primeOutputBuffersUsingStreamCallback = paPrimeOutputBuffersUsingStreamCallback;
+constexpr PaStreamFlags const platformSpecificFlags = paPlatformSpecificFlags;
+
+constexpr PaStreamCallbackFlags const inputUnderflow = paInputUnderflow;
+constexpr PaStreamCallbackFlags const inputOverflow = paInputOverflow;
+constexpr PaStreamCallbackFlags const outputUnderflow = paOutputUnderflow;
+constexpr PaStreamCallbackFlags const outputOverflow = paOutputOverflow;
+constexpr PaStreamCallbackFlags const primingOutput = paPrimingOutput;
 
 void unused();
 
-}  // namespace PortAudio
-
-#endif /* AUDIO_INTERFACE_PORTAUDIO_H_ */
+}  // namespace PA
