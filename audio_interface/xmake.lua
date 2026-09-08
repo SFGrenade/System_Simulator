@@ -1,5 +1,7 @@
+add_requires( "boost" )
 add_requires( "portaudio" )
 
+add_requireconfs( "boost", { configs = { header_only = true, asio = true, system = true } } )
 -- because this otherwise uses MT and we have MD
 --add_requireconfs( "portaudio", { configs = { shared = true } } )
 
@@ -9,6 +11,7 @@ target( "Audio-Interface" )
     set_default( false )
     set_group( "LIBS" )
 
+    add_packages( "boost", { public = true } )
     add_packages( "portaudio", { public = true } )
 
     add_deps( "Configuration", { public = true } )

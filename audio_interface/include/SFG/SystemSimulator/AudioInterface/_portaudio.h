@@ -1,6 +1,10 @@
 #pragma once
 
+// Library Includes
 #include <portaudio.h>
+
+// C++ Includes
+#include <string>
 
 namespace PA {
 
@@ -33,6 +37,7 @@ constexpr PaStreamCallbackFlags const outputUnderflow = paOutputUnderflow;
 constexpr PaStreamCallbackFlags const outputOverflow = paOutputOverflow;
 constexpr PaStreamCallbackFlags const primingOutput = paPrimingOutput;
 
-void unused();
+void ListInfo();
+PaDeviceIndex GetDevice( std::string const& deviceName, std::string const& apiName );
 
 }  // namespace PA
