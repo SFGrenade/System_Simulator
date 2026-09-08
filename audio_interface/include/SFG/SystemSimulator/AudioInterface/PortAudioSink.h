@@ -15,7 +15,7 @@
 
 namespace SFG::SystemSimulator::AudioInterface {
 
-class PortAudioSink : public AudioNode {
+class PortAudioSink : public Puller, public DownStream {
   public:
   void start( std::string const& sourceName, std::string const& apiName, bool pushing = false, size_t framesPerBuffer = -1 );
   void stop();

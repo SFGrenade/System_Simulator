@@ -16,7 +16,7 @@
 
 namespace SFG::SystemSimulator::AudioInterface {
 
-class PortAudioSource : public AudioNode {
+class PortAudioSource : public Pusher, public UpStream {
   public:
   void start( std::string const& sourceName, std::string const& apiName, bool pulling = false, size_t framesPerBuffer = -1 );
   void stop();

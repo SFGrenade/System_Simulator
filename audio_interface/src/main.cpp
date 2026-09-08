@@ -43,15 +43,8 @@ int main( int argc, char** argv ) {
   std::shared_ptr< BufferTransform > buffer = std::make_shared< BufferTransform >();
   std::shared_ptr< PortAudioSink > sink = std::make_shared< PortAudioSink >();
 
-  source->pushAudioSignal().connect(
-      AudioNode::PushAudioSignal::slot_type( std::bind( &BufferTransform::onPushAudio, buffer.get(), std::placeholders::_1 ) ).track_foreign( buffer ) );
-  source->pushFormatSignal().connect(
-      AudioNode::PushFormatSignal::slot_type( std::bind( &BufferTransform::onPushFormat, buffer.get(), std::placeholders::_1 ) ).track_foreign( buffer ) );
-
-  sink->pullAudioSignal().connect(
-      AudioNode::PullAudioSignal::slot_type( std::bind( &BufferTransform::onPullAudio, buffer.get(), std::placeholders::_1 ) ).track_foreign( buffer ) );
-  sink->pullFormatSignal().connect(
-      AudioNode::PullFormatSignal::slot_type( std::bind( &BufferTransform::onPullFormat, buffer.get() ) ).track_foreign( buffer ) );
+  conPush2Down( source, buffer );
+  conPull2Up( sink, buffer );
 
   source->start( "Microphone", "WASAPI", false, 512 );
   sink->start( "Headphones", "WASAPI", false, 512 );

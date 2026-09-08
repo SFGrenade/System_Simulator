@@ -13,7 +13,7 @@
 
 namespace SFG::SystemSimulator::AudioInterface {
 
-class BufferTransform : public AudioNode {
+class BufferTransform : public DownStream, public UpStream {
   public:
   virtual void onPushAudio( AudioChunk const& samples ) override;
   virtual void onPushFormat( AudioFormat const& format ) override;

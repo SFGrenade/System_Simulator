@@ -3,50 +3,50 @@
 
 namespace SFG::SystemSimulator::AudioInterface {
 
-AudioNode::PushAudioSignal& AudioNode::pushAudioSignal() {
+PushAudioSignal& Pusher::pushAudioSignal() {
   return pushAudio_;
 }
 
-AudioNode::PushFormatSignal& AudioNode::pushFormatSignal() {
+PushFormatSignal& Pusher::pushFormatSignal() {
   return pushFormat_;
 }
 
-AudioNode::PullAudioSignal& AudioNode::pullAudioSignal() {
+void Pusher::emitAudio( AudioChunk const& samples ) {
+  pushAudio_( samples );
+}
+
+void Pusher::emitFormat( AudioFormat const& format ) {
+  pushFormat_( format );
+}
+
+PullAudioSignal& Puller::pullAudioSignal() {
   return pullAudio_;
 }
 
-AudioNode::PullFormatSignal& AudioNode::pullFormatSignal() {
+PullFormatSignal& Puller::pullFormatSignal() {
   return pullFormat_;
 }
 
-void AudioNode::onPushAudio( AudioChunk const& /*samples*/ ) {}
+std::optional< AudioChunk > Puller::requestAudio( size_t frames ) {
+  return pullAudio_( frames );
+}
 
-void AudioNode::onPushFormat( AudioFormat const& /*format*/ ) {}
+std::optional< AudioFormat > Puller::requestFormat() {
+  return pullFormat_();
+}
 
-AudioChunk AudioNode::onPullAudio( size_t frames ) {
+void DownStream::onPushAudio( AudioChunk const& /*samples*/ ) {}
+
+void DownStream::onPushFormat( AudioFormat const& /*format*/ ) {}
+
+AudioChunk UpStream::onPullAudio( size_t frames ) {
   AudioChunk ret( frames, 0.0f );
   return ret;
 }
 
-AudioFormat AudioNode::onPullFormat() {
+AudioFormat UpStream::onPullFormat() {
   AudioFormat ret;
   return ret;
-}
-
-void AudioNode::emitAudio( AudioChunk const& samples ) {
-  pushAudio_( samples );
-}
-
-void AudioNode::emitFormat( AudioFormat const& format ) {
-  pushFormat_( format );
-}
-
-std::optional< AudioChunk > AudioNode::requestAudio( size_t frames ) {
-  return pullAudio_( frames );
-}
-
-std::optional< AudioFormat > AudioNode::requestFormat() {
-  return pullFormat_();
 }
 
 }  // namespace SFG::SystemSimulator::AudioInterface
