@@ -15,13 +15,14 @@
 
 namespace SFG::SystemSimulator::AudioInterface {
 
-class PortAudioSink : public Puller, public DownStream {
+class PortAudioSink {
   public:
-  void start( std::string const& sourceName, std::string const& apiName, bool pushing = false, size_t framesPerBuffer = -1 );
+  void init( std::string const& sourceName, std::string const& apiName, bool pushing = false, size_t framesPerBuffer = -1 );
+  void start();
   void stop();
 
-  virtual void onPushAudio( AudioChunk const& samples ) override;
-  virtual void onPushFormat( AudioFormat const& format ) override;
+  std::vector< PullAudioSignal >& pullSignals();
+  void onPushAudio( size_t channel, AudioChunk const& samples );
 
   private:
   void threadRun();
@@ -38,15 +39,20 @@ class PortAudioSink : public Puller, public DownStream {
                          void* userData );
 
   private:
+  // generic
   Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "PortAudioSink" );
   std::atomic< bool > running_ = false;
+  // portaudio
   std::shared_ptr< PaStream > stream_ = nullptr;
-  std::thread thread_;
-  std::atomic< bool > pushing_ = false;
   PaStreamParameters parameters_{};
   double samplerate_ = 0.0;
   size_t framesPerBuffer_ = 0;
   PaStreamFlags flags_ = PA::noFlag;
+  // thread
+  std::atomic< bool > pushing_ = false;
+  std::thread thread_;
+  std::vector< std::unique_ptr< AudioQueue > > audioQueues_;
+  std::vector< PullAudioSignal > pullSignals_;
 };
 
 }  // namespace SFG::SystemSimulator::AudioInterface

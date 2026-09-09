@@ -40,22 +40,35 @@ int main( int argc, char** argv ) {
   PA::ListInfo();
 
   std::shared_ptr< PortAudioSource > source = std::make_shared< PortAudioSource >();
-  std::shared_ptr< BufferTransform > buffer = std::make_shared< BufferTransform >();
   std::shared_ptr< PortAudioSink > sink = std::make_shared< PortAudioSink >();
 
-  conPush2Down( source, buffer );
-  conPull2Up( sink, buffer );
+  source->init( "Microphone", "WASAPI", false, 512 );
+  sink->init( "Headphones", "WASAPI", false, 512 );
 
-  source->start( "Microphone", "WASAPI", false, 512 );
-  sink->start( "Headphones", "WASAPI", false, 512 );
+  std::vector< PushAudioSignal >& sourceOutput = source->pushSignals();
+  std::vector< PullAudioSignal >& sinkInput = sink->pullSignals();
+
+  std::vector< std::shared_ptr< BufferTransform > > buffers;
+  buffers.reserve( sourceOutput.size() );
+  for( size_t i = 0; i < sourceOutput.size(); i++ ) {
+    std::shared_ptr< BufferTransform > buffer = std::make_shared< BufferTransform >();
+
+    buffers.push_back( buffer );
+
+    conPush2Down< PushAudioSignal, BufferTransform >( sourceOutput[i], buffer, &BufferTransform::onPushAudio );
+    conPull2Up< PullAudioSignal, BufferTransform >( sinkInput[i], buffer, &BufferTransform::onPullAudio );
+  }
+
+  source->start();
+  sink->start();
 
   std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
 
   source->stop();
   sink->stop();
 
+  buffers.clear();
   source.reset();
-  buffer.reset();
   sink.reset();
 
   if( PaError error = Pa_Terminate(); error != PaErrorCode::paNoError ) {
