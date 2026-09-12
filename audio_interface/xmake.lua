@@ -1,9 +1,11 @@
 add_requires( "boost" )
 add_requires( "portaudio" )
+add_requires( "soxr" )
 
 add_requireconfs( "boost", { configs = { header_only = true, asio = true, system = true } } )
 -- because this otherwise uses MT and we have MD
 --add_requireconfs( "portaudio", { configs = { shared = true } } )
+--add_requireconfs( "soxr", { configs = { shared = false } } )
 
 target( "Audio-Interface" )
     set_kind( "static" )
@@ -13,6 +15,7 @@ target( "Audio-Interface" )
 
     add_packages( "boost", { public = true } )
     add_packages( "portaudio", { public = true } )
+    add_packages( "soxr", { public = true } )
 
     add_deps( "Configuration", { public = true } )
     add_deps( "Logger", { public = true } )

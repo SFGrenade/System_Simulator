@@ -8,6 +8,9 @@
 #include <SFG/SystemSimulator/Logger/_spdlog.h>
 #include <SFG/SystemSimulator/Logger/loggerFactory.h>
 
+// Library Includes
+#include <soxr.h>
+
 // C++ Includes
 #include <atomic>
 #include <memory>
@@ -52,6 +55,7 @@ class PortAudioSource {
   // thread
   std::atomic< bool > pulling_ = false;
   std::thread thread_;
+  std::vector< std::shared_ptr< soxr > > soxrs_;  // resampling
   std::vector< std::unique_ptr< AudioQueue > > audioQueues_;
   std::vector< PushAudioSignal > pushSignals_;
 };
