@@ -3,23 +3,20 @@
 // Library Includes
 #include <boost/signals2.hpp>
 
-// C++ Includes
-#include <optional>
-
 namespace bs2 = boost::signals2;
 
 namespace SFG::SystemSimulator::AudioInterface {
 
 template < class T >
-struct LastOrNone {
-  using result_type = std::optional< T >;
+struct RangeCombiner {
+  using result_type = T;
   template < class It >
   result_type operator()( It first, It last ) const {
+    result_type ret( 0 );
     if( first == last )
-      return {};
-    result_type ret{};
+      return ret;
     while( first != last ) {
-      ret = *first;
+      ret.insert( ret.end(), first->begin(), first->end() );
       ++first;
     }
     return ret;

@@ -107,10 +107,8 @@ void PortAudioSink::threadRun() {
     if( !pushing_.load( std::memory_order_relaxed ) ) {
       for( size_t channel = 0; channel < parameters_.channelCount; channel++ ) {
         if( audioQueues_[channel]->read_available() < framesPerBuffer_ ) {
-          std::optional< std::vector< float > > samples = pullSignals_[channel]( framesPerBuffer_ );
-          if( samples ) {
-            audioQueues_[channel]->push( samples->data(), samples->size() );
-          }
+          AudioChunk samples = pullSignals_[channel]( framesPerBuffer_ );
+          audioQueues_[channel]->push( samples.begin(), samples.end() );
         }
       }
     }

@@ -1,11 +1,21 @@
+-- required
 add_requires( "boost" )
-add_requires( "portaudio" )
+-- for resampling
 add_requires( "soxr" )
+-- for hardware IO
+add_requires( "portaudio" )
+--add_requires( "alsa-lib" )
+--add_requires( "jack2" )
+--add_requires( "pulseaudio" )
+--add_requires( "pipewire" )
 
 add_requireconfs( "boost", { configs = { header_only = true, asio = true, system = true } } )
 -- because this otherwise uses MT and we have MD
 --add_requireconfs( "portaudio", { configs = { shared = true } } )
---add_requireconfs( "soxr", { configs = { shared = false } } )
+----add_requireconfs( "alsa-lib", { configs = { shared = true } } )
+----add_requireconfs( "jack2", { configs = { shared = true } } )
+----add_requireconfs( "pulseaudio", { configs = { shared = true } } )
+----add_requireconfs( "pipewire", { configs = { shared = true } } )
 
 target( "Audio-Interface" )
     set_kind( "static" )
@@ -14,8 +24,12 @@ target( "Audio-Interface" )
     set_group( "LIBS" )
 
     add_packages( "boost", { public = true } )
-    add_packages( "portaudio", { public = true } )
     add_packages( "soxr", { public = true } )
+    add_packages( "portaudio", { public = true } )
+    --add_packages( "alsa-lib", { public = true } )
+    --add_packages( "jack2", { public = true } )
+    --add_packages( "pulseaudio", { public = true } )
+    --add_packages( "pipewire", { public = true } )
 
     add_deps( "Configuration", { public = true } )
     add_deps( "Logger", { public = true } )

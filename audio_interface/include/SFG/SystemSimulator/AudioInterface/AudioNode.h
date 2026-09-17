@@ -2,7 +2,7 @@
 
 // Project Includes
 #include "SFG/SystemSimulator/AudioInterface/AudioFormat.h"
-#include "SFG/SystemSimulator/AudioInterface/LastOrNoneCombiner.h"
+#include "SFG/SystemSimulator/AudioInterface/RangeCombiner.h"
 
 // Library Includes
 #include <boost/signals2.hpp>
@@ -13,7 +13,7 @@ namespace SFG::SystemSimulator::AudioInterface {
 
 using PushAudioSignal = bs2::signal< void( AudioChunk const& ) >;
 using PushAudioSlot = PushAudioSignal::slot_type;
-using PullAudioSignal = bs2::signal< AudioChunk( size_t ), LastOrNone< AudioChunk > >;
+using PullAudioSignal = bs2::signal< AudioChunk( size_t ), RangeCombiner< AudioChunk > >;
 using PullAudioSlot = PullAudioSignal::slot_type;
 
 template < class Push, class Down >
