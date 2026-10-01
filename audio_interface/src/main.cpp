@@ -1,7 +1,7 @@
 // Project Includes
-#include "SFG/SystemSimulator/AudioInterface/BufferTransform.h"
-#include "SFG/SystemSimulator/AudioInterface/PortAudioSink.h"
-#include "SFG/SystemSimulator/AudioInterface/PortAudioSource.h"
+#include "SFG/SystemSimulator/AudioInterface/Sinks/PortAudio.h"
+#include "SFG/SystemSimulator/AudioInterface/Sources/PortAudio.h"
+#include "SFG/SystemSimulator/AudioInterface/Transforms/Buffer.h"
 #include "SFG/SystemSimulator/AudioInterface/_portaudio.h"
 
 // Project Includes
@@ -39,8 +39,8 @@ int main( int argc, char** argv ) {
   }
   PA::ListInfo();
 
-  std::shared_ptr< PortAudioSource > source = std::make_shared< PortAudioSource >();
-  std::shared_ptr< PortAudioSink > sink = std::make_shared< PortAudioSink >();
+  std::shared_ptr< Sources::PortAudio > source = std::make_shared< Sources::PortAudio >();
+  std::shared_ptr< Sinks::PortAudio > sink = std::make_shared< Sinks::PortAudio >();
 
   source->init( "Microphone", "WASAPI", false, 512 );
   sink->init( "Headphones", "WASAPI", false, 512 );
@@ -48,15 +48,18 @@ int main( int argc, char** argv ) {
   std::vector< PushAudioSignal >& sourceOutput = source->pushSignals();
   std::vector< PullAudioSignal >& sinkInput = sink->pullSignals();
 
-  std::vector< std::shared_ptr< BufferTransform > > buffers;
+  std::vector< std::shared_ptr< Transforms::Buffer > > buffers;
   buffers.reserve( sourceOutput.size() );
   for( size_t i = 0; i < sourceOutput.size(); i++ ) {
-    std::shared_ptr< BufferTransform > buffer = std::make_shared< BufferTransform >();
+    std::shared_ptr< Transforms::Buffer > buffer = std::make_shared< Transforms::Buffer >();
 
     buffers.push_back( buffer );
 
-    conPush2Down< PushAudioSignal, BufferTransform >( sourceOutput[i], buffer, &BufferTransform::onPushAudio );
-    conPull2Up< PullAudioSignal, BufferTransform >( sinkInput[i], buffer, &BufferTransform::onPullAudio );
+    boost::signals2::connection conDown = conPush2Down< PushAudioSignal, Transforms::Buffer >( sourceOutput[i], buffer, &Transforms::Buffer::onPushAudio );
+    boost::signals2::connection conUp = conPull2Up< PullAudioSignal, Transforms::Buffer >( sinkInput[i], buffer, &Transforms::Buffer::onPullAudio );
+
+    spdlog::debug( fmt::runtime( "main - Source Stream {:d} connected to buffer: {}" ), i, conDown.connected() );
+    spdlog::debug( fmt::runtime( "main - Sink Stream {:d} connected to buffer: {}" ), i, conUp.connected() );
   }
 
   source->start();

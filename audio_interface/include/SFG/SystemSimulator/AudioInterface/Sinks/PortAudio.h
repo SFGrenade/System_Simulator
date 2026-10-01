@@ -16,9 +16,9 @@
 #include <memory>
 #include <string>
 
-namespace SFG::SystemSimulator::AudioInterface {
+namespace SFG::SystemSimulator::AudioInterface::Sinks {
 
-class PortAudioSink {
+class PortAudio {
   public:
   void init( std::string const& sourceName, std::string const& apiName, bool pushing = false, size_t framesPerBuffer = -1 );
   void start();
@@ -43,20 +43,19 @@ class PortAudioSink {
 
   private:
   // generic
-  Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "PortAudioSink" );
+  Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "Sinks::PortAudio" );
   std::atomic< bool > running_ = false;
   // portaudio
   std::shared_ptr< PaStream > stream_ = nullptr;
   PaStreamParameters parameters_{};
   double samplerate_ = 0.0;
   size_t framesPerBuffer_ = 0;
-  PaStreamFlags flags_ = PA::noFlag;
   // thread
   std::atomic< bool > pushing_ = false;
   std::thread thread_;
   std::vector< std::shared_ptr< soxr > > soxrs_;  // resampling
-  std::vector< std::unique_ptr< AudioQueue > > audioQueues_;
+  std::vector< AudioQueue > audioQueues_;
   std::vector< PullAudioSignal > pullSignals_;
 };
 
-}  // namespace SFG::SystemSimulator::AudioInterface
+}  // namespace SFG::SystemSimulator::AudioInterface::Sinks

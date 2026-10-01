@@ -1,9 +1,9 @@
 // Assigned Header
-#include "SFG/SystemSimulator/AudioInterface/PortAudioSink.h"
+#include "SFG/SystemSimulator/AudioInterface/Sinks/PortAudio.h"
 
-namespace SFG::SystemSimulator::AudioInterface {
+namespace SFG::SystemSimulator::AudioInterface::Sinks {
 
-void PortAudioSink::init( std::string const& sourceName, std::string const& apiName, bool pushing, size_t framesPerBuffer ) {
+void PortAudio::init( std::string const& sourceName, std::string const& apiName, bool pushing, size_t framesPerBuffer ) {
   logger_->trace( fmt::runtime( "init( {:?}, {:?}, {}, {:d} )" ), sourceName, apiName, pushing, framesPerBuffer );
 
   PaDeviceIndex outputDeviceIndex = PA::GetDevice( sourceName, apiName );
@@ -17,7 +17,6 @@ void PortAudioSink::init( std::string const& sourceName, std::string const& apiN
     parameters_.hostApiSpecificStreamInfo = nullptr;
     samplerate_ = deviceInfo->defaultSampleRate;
     framesPerBuffer_ = ( framesPerBuffer == size_t( -1 ) ) ? size_t( std::ceil( parameters_.suggestedLatency * samplerate_ ) ) : framesPerBuffer;
-    flags_ = PA::noFlag;
     pushing_ = pushing;
 
     logger_->info( fmt::runtime( "Settings:" ) );
@@ -28,12 +27,11 @@ void PortAudioSink::init( std::string const& sourceName, std::string const& apiN
     logger_->info( fmt::runtime( "- hostApiSpecificStreamInfo: {:p}" ), parameters_.hostApiSpecificStreamInfo );
     logger_->info( fmt::runtime( "- samplerate: {:f}" ), samplerate_ );
     logger_->info( fmt::runtime( "- framesPerBuffer: {:d}" ), framesPerBuffer_ );
-    logger_->info( fmt::runtime( "- flags: {:d}" ), flags_ );
     logger_->info( fmt::runtime( "- pushing: {}" ), pushing_.load( std::memory_order_relaxed ) );
   }
   {
     PaStream* tmpStream = nullptr;
-    if( PaError error = Pa_OpenStream( &tmpStream, nullptr, &parameters_, samplerate_, framesPerBuffer_, flags_, s_callback, this );
+    if( PaError error = Pa_OpenStream( &tmpStream, nullptr, &parameters_, samplerate_, paFramesPerBufferUnspecified, PA::noFlag, s_callback, this );
         error != PaErrorCode::paNoError ) {
       logger_->error( fmt::runtime( "PortAudio Pa_OpenStream error: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );
       return stop();
@@ -52,14 +50,11 @@ void PortAudioSink::init( std::string const& sourceName, std::string const& apiN
     }
     soxrs_.push_back( tmp );
   }
-  audioQueues_.reserve( parameters_.channelCount );
-  for( size_t i = 0; i < parameters_.channelCount; i++ ) {
-    audioQueues_.push_back( makeQueue() );
-  }
+  audioQueues_.resize( parameters_.channelCount );
   pullSignals_.resize( parameters_.channelCount );
 }
 
-void PortAudioSink::start() {
+void PortAudio::start() {
   logger_->trace( fmt::runtime( "start()" ) );
 
   running_ = true;
@@ -67,10 +62,10 @@ void PortAudioSink::start() {
     logger_->error( fmt::runtime( "PortAudio Pa_StartStream error: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );
     return stop();
   }
-  thread_ = std::thread( &PortAudioSink::threadRun, this );
+  thread_ = std::thread( &PortAudio::threadRun, this );
 }
 
-void PortAudioSink::stop() {
+void PortAudio::stop() {
   logger_->trace( fmt::runtime( "stop()" ) );
 
   running_ = false;
@@ -90,42 +85,40 @@ void PortAudioSink::stop() {
   decltype( pullSignals_ )( 0 ).swap( pullSignals_ );
 }
 
-std::vector< PullAudioSignal >& PortAudioSink::pullSignals() {
+std::vector< PullAudioSignal >& PortAudio::pullSignals() {
   logger_->trace( fmt::runtime( "pullSignals()" ) );
 
   return pullSignals_;
 }
 
-void PortAudioSink::onPushAudio( size_t channel, AudioChunk const& samples ) {
-  if( pushing_.load( std::memory_order_relaxed ) ) {
-    audioQueues_[channel]->push( samples.data(), samples.size() );
-  }
+void PortAudio::onPushAudio( size_t channel, AudioChunk const& samples ) {
+  audioQueues_[channel].push( samples.data(), samples.size() );
 }
 
-void PortAudioSink::threadRun() {
+void PortAudio::threadRun() {
   while( running_.load( std::memory_order_relaxed ) ) {
     if( !pushing_.load( std::memory_order_relaxed ) ) {
       for( size_t channel = 0; channel < parameters_.channelCount; channel++ ) {
-        if( audioQueues_[channel]->read_available() < framesPerBuffer_ ) {
+        if( audioQueues_[channel].read_available() < framesPerBuffer_ ) {
           AudioChunk samples = pullSignals_[channel]( framesPerBuffer_ );
-          audioQueues_[channel]->push( samples.begin(), samples.end() );
+          audioQueues_[channel].push( samples.begin(), samples.end() );
         }
       }
     }
   }
 }
 
-PaStreamCallbackResult PortAudioSink::callback( void const* /*input*/,
-                                                void* output,
-                                                unsigned long frames,
-                                                PaStreamCallbackTimeInfo const* /*timeInfo*/,
-                                                PaStreamCallbackFlags /*statusFlags*/ ) {
+PaStreamCallbackResult PortAudio::callback( void const* /*input*/,
+                                            void* output,
+                                            unsigned long frames,
+                                            PaStreamCallbackTimeInfo const* /*timeInfo*/,
+                                            PaStreamCallbackFlags /*statusFlags*/ ) {
   float* castOutput = reinterpret_cast< float* >( output );
 
   for( size_t channel = 0; channel < parameters_.channelCount; channel++ ) {
     std::vector< float > resampledOutput( std::ceil( frames * ( INTERNAL_SAMPLERATE / samplerate_ ) ), 0.0f );
     std::vector< float > rawOutput( frames );
-    audioQueues_[channel]->pop( resampledOutput.data(), resampledOutput.size() );
+    audioQueues_[channel].pop( resampledOutput.data(), resampledOutput.size() );
     size_t rawOutputFrames;
     soxr_process( soxrs_[channel].get(), resampledOutput.data(), resampledOutput.size(), nullptr, rawOutput.data(), rawOutput.size(), &rawOutputFrames );
     for( size_t frame = 0; frame < frames; frame++ ) {
@@ -136,13 +129,13 @@ PaStreamCallbackResult PortAudioSink::callback( void const* /*input*/,
   return running_.load( std::memory_order_relaxed ) ? PaStreamCallbackResult::paContinue : PaStreamCallbackResult::paComplete;
 }
 
-int PortAudioSink::s_callback( void const* input,
-                               void* output,
-                               unsigned long frames,
-                               PaStreamCallbackTimeInfo const* timeInfo,
-                               PaStreamCallbackFlags statusFlags,
-                               void* userData ) {
-  return reinterpret_cast< PortAudioSink* >( userData )->callback( input, output, frames, timeInfo, statusFlags );
+int PortAudio::s_callback( void const* input,
+                           void* output,
+                           unsigned long frames,
+                           PaStreamCallbackTimeInfo const* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void* userData ) {
+  return reinterpret_cast< PortAudio* >( userData )->callback( input, output, frames, timeInfo, statusFlags );
 }
 
-}  // namespace SFG::SystemSimulator::AudioInterface
+}  // namespace SFG::SystemSimulator::AudioInterface::Sinks

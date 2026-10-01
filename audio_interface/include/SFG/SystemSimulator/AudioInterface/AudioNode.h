@@ -21,9 +21,24 @@ bs2::connection conPush2Down( PushAudioSignal& pushSignal, std::shared_ptr< Down
   return pushSignal.connect( PushAudioSignal::slot_type( std::bind( downStreamFunc, downStream.get(), std::placeholders::_1 ) ).track_foreign( downStream ) );
 }
 
+template < class Push, class Down >
+bs2::connection conPush2Down( PushAudioSignal& pushSignal,
+                              std::shared_ptr< Down > downStream,
+                              size_t channel,
+                              void ( Down::*downStreamFunc )( size_t, AudioChunk const& ) ) {
+  return pushSignal.connect(
+      PushAudioSignal::slot_type( std::bind( downStreamFunc, downStream.get(), channel, std::placeholders::_1 ) ).track_foreign( downStream ) );
+}
+
 template < class Pull, class Up >
 bs2::connection conPull2Up( PullAudioSignal& pullSignal, std::shared_ptr< Up > upStream, AudioChunk ( Up::*upStreamFunc )( size_t ) ) {
   return pullSignal.connect( PullAudioSignal::slot_type( std::bind( upStreamFunc, upStream.get(), std::placeholders::_1 ) ).track_foreign( upStream ) );
+}
+
+template < class Pull, class Up >
+bs2::connection conPull2Up( PullAudioSignal& pullSignal, std::shared_ptr< Up > upStream, size_t channel, AudioChunk ( Up::*upStreamFunc )( size_t, size_t ) ) {
+  return pullSignal.connect(
+      PullAudioSignal::slot_type( std::bind( upStreamFunc, upStream.get(), channel, std::placeholders::_1 ) ).track_foreign( upStream ) );
 }
 
 }  // namespace SFG::SystemSimulator::AudioInterface

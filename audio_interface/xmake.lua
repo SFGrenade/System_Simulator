@@ -37,8 +37,14 @@ target( "Audio-Interface" )
 
     add_includedirs( "include", { public = true } )
 
+    add_headerfiles( "include/(SFG/SystemSimulator/AudioInterface/Sinks/*.h)" )
+    add_headerfiles( "include/(SFG/SystemSimulator/AudioInterface/Sources/*.h)" )
+    add_headerfiles( "include/(SFG/SystemSimulator/AudioInterface/Transforms/*.h)" )
     add_headerfiles( "include/(SFG/SystemSimulator/AudioInterface/*.h)" )
 
+    add_files( "src/Sinks/*.cpp" )
+    add_files( "src/Sources/*.cpp" )
+    add_files( "src/Transforms/*.cpp" )
     add_files( "src/*.cpp" )
     remove_files( "src/main.cpp" )
 
