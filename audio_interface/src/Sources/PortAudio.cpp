@@ -50,7 +50,10 @@ void PortAudio::init( std::string const& sourceName, std::string const& apiName,
     }
     soxrs_.push_back( tmp );
   }
-  audioQueues_.resize( parameters_.channelCount );
+  audioQueues_.reserve( parameters_.channelCount );
+  for( size_t i = 0; i < parameters_.channelCount; i++ ) {
+    audioQueues_.push_back( makeAudioQueue() );
+  }
   pushSignals_.resize( parameters_.channelCount );
 }
 
@@ -93,9 +96,10 @@ std::vector< PushAudioSignal >& PortAudio::pushSignals() {
 
 AudioChunk PortAudio::onPullAudio( size_t channel, size_t frames ) {
   if( pulling_.load( std::memory_order_relaxed ) ) {
-    size_t framesToCopy = std::min( frames, audioQueues_[channel].read_available() );
+    size_t framesToCopy = std::min( frames, audioQueues_[channel]->size() );
     AudioChunk ret( framesToCopy, 0.0f );
-    audioQueues_[channel].pop( ret.data(), framesToCopy );
+    std::move( audioQueues_[channel]->begin(), audioQueues_[channel]->begin() + framesToCopy, ret.data() );
+    audioQueues_[channel]->erase_begin( framesToCopy );
     return ret;
   }
   return AudioChunk( 0 );
@@ -105,9 +109,10 @@ void PortAudio::threadRun() {
   while( running_.load( std::memory_order_relaxed ) ) {
     if( !pulling_.load( std::memory_order_relaxed ) ) {
       for( size_t channel = 0; channel < parameters_.channelCount; channel++ ) {
-        if( audioQueues_[channel].read_available() >= framesPerBuffer_ ) {
+        if( audioQueues_[channel]->size() >= framesPerBuffer_ ) {
           AudioChunk samples( framesPerBuffer_, 0.0f );
-          audioQueues_[channel].pop( samples.data(), framesPerBuffer_ );
+          std::move( audioQueues_[channel]->begin(), audioQueues_[channel]->begin() + framesPerBuffer_, samples.data() );
+          audioQueues_[channel]->erase_begin( framesPerBuffer_ );
           pushSignals_[channel]( samples );
         }
       }
@@ -116,10 +121,10 @@ void PortAudio::threadRun() {
 }
 
 PaStreamCallbackResult PortAudio::callback( void const* input,
-                                                  void* /*output*/,
-                                                  unsigned long frames,
-                                                  PaStreamCallbackTimeInfo const* /*timeInfo*/,
-                                                  PaStreamCallbackFlags /*statusFlags*/ ) {
+                                            void* /*output*/,
+                                            unsigned long frames,
+                                            PaStreamCallbackTimeInfo const* /*timeInfo*/,
+                                            PaStreamCallbackFlags /*statusFlags*/ ) {
   float const* castInput = reinterpret_cast< float const* >( input );
 
   for( size_t channel = 0; channel < parameters_.channelCount; channel++ ) {
@@ -130,18 +135,18 @@ PaStreamCallbackResult PortAudio::callback( void const* input,
     }
     size_t resampledFrames;
     soxr_process( soxrs_[channel].get(), rawInput.data(), rawInput.size(), nullptr, resampledInput.data(), resampledInput.size(), &resampledFrames );
-    audioQueues_[channel].push( resampledInput.data(), resampledFrames );
+    audioQueues_[channel]->insert( audioQueues_[channel]->end(), resampledInput.data(), resampledInput.data() + resampledFrames );
   }
 
   return running_.load( std::memory_order_relaxed ) ? PaStreamCallbackResult::paContinue : PaStreamCallbackResult::paComplete;
 }
 
 int PortAudio::s_callback( void const* input,
-                                 void* output,
-                                 unsigned long frames,
-                                 PaStreamCallbackTimeInfo const* timeInfo,
-                                 PaStreamCallbackFlags statusFlags,
-                                 void* userData ) {
+                           void* output,
+                           unsigned long frames,
+                           PaStreamCallbackTimeInfo const* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void* userData ) {
   return reinterpret_cast< PortAudio* >( userData )->callback( input, output, frames, timeInfo, statusFlags );
 }
 

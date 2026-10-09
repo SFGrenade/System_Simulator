@@ -55,7 +55,7 @@ class PortAudio {
   std::atomic< bool > pulling_ = false;
   std::thread thread_;
   std::vector< std::shared_ptr< soxr > > soxrs_;  // resampling
-  std::vector< AudioQueue > audioQueues_;
+  std::vector< std::unique_ptr< AudioQueue > > audioQueues_;
   std::vector< PushAudioSignal > pushSignals_;
 };
 

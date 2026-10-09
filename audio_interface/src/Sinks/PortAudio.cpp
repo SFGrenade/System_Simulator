@@ -50,7 +50,10 @@ void PortAudio::init( std::string const& sourceName, std::string const& apiName,
     }
     soxrs_.push_back( tmp );
   }
-  audioQueues_.resize( parameters_.channelCount );
+  audioQueues_.reserve( parameters_.channelCount );
+  for( size_t i = 0; i < parameters_.channelCount; i++ ) {
+    audioQueues_.push_back( makeAudioQueue() );
+  }
   pullSignals_.resize( parameters_.channelCount );
 }
 
@@ -92,16 +95,16 @@ std::vector< PullAudioSignal >& PortAudio::pullSignals() {
 }
 
 void PortAudio::onPushAudio( size_t channel, AudioChunk const& samples ) {
-  audioQueues_[channel].push( samples.data(), samples.size() );
+  audioQueues_[channel]->insert( audioQueues_[channel]->end(), samples.data(), samples.data() + samples.size() );
 }
 
 void PortAudio::threadRun() {
   while( running_.load( std::memory_order_relaxed ) ) {
     if( !pushing_.load( std::memory_order_relaxed ) ) {
       for( size_t channel = 0; channel < parameters_.channelCount; channel++ ) {
-        if( audioQueues_[channel].read_available() < framesPerBuffer_ ) {
+        if( audioQueues_[channel]->size() < framesPerBuffer_ ) {
           AudioChunk samples = pullSignals_[channel]( framesPerBuffer_ );
-          audioQueues_[channel].push( samples.begin(), samples.end() );
+          audioQueues_[channel]->insert( audioQueues_[channel]->end(), samples.begin(), samples.end() );
         }
       }
     }
@@ -118,7 +121,8 @@ PaStreamCallbackResult PortAudio::callback( void const* /*input*/,
   for( size_t channel = 0; channel < parameters_.channelCount; channel++ ) {
     std::vector< float > resampledOutput( std::ceil( frames * ( INTERNAL_SAMPLERATE / samplerate_ ) ), 0.0f );
     std::vector< float > rawOutput( frames );
-    audioQueues_[channel].pop( resampledOutput.data(), resampledOutput.size() );
+    std::move( audioQueues_[channel]->begin(), audioQueues_[channel]->begin() + resampledOutput.size(), resampledOutput.data() );
+    audioQueues_[channel]->erase_begin( resampledOutput.size() );
     size_t rawOutputFrames;
     soxr_process( soxrs_[channel].get(), resampledOutput.data(), resampledOutput.size(), nullptr, rawOutput.data(), rawOutput.size(), &rawOutputFrames );
     for( size_t frame = 0; frame < frames; frame++ ) {

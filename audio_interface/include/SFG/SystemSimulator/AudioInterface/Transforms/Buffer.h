@@ -16,7 +16,7 @@ class Buffer {
 
   private:
   Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "Transforms::Buffer" );
-  AudioQueue buffer_;
+  std::unique_ptr< AudioQueue > buffer_ = makeAudioQueue();
 };
 
 }  // namespace SFG::SystemSimulator::AudioInterface::Transforms
