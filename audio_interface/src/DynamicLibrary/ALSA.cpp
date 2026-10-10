@@ -1850,6 +1850,4 @@ int ALSA::snd_spcm_init_get_params( ALSA_detail::snd_pcm_t* pcm, unsigned int* r
   return snd_spcm_init_get_params_( pcm, rate, buffer_size, period_size );
 }
 
-#undef DO_STUFF
-
 }  // namespace SFG::SystemSimulator::AudioInterface::DynamicLibrary
