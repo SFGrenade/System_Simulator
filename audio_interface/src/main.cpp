@@ -1,5 +1,6 @@
 // Project Includes
 #include "SFG/SystemSimulator/AudioInterface/Sinks/PortAudio.h"
+#include "SFG/SystemSimulator/AudioInterface/Sources/ALSA.h"
 #include "SFG/SystemSimulator/AudioInterface/Sources/PortAudio.h"
 #include "SFG/SystemSimulator/AudioInterface/Transforms/Buffer.h"
 #include "SFG/SystemSimulator/AudioInterface/_portaudio.h"
@@ -39,9 +40,11 @@ int main( int argc, char** argv ) {
   }
   PA::ListInfo();
 
+  std::shared_ptr< Sources::ALSA > source_alsa = std::make_shared< Sources::ALSA >();
   std::shared_ptr< Sources::PortAudio > source = std::make_shared< Sources::PortAudio >();
   std::shared_ptr< Sinks::PortAudio > sink = std::make_shared< Sinks::PortAudio >();
 
+  source_alsa->init();
   source->init( "Microphone", "WASAPI", false, 512 );
   sink->init( "Headphones", "WASAPI", false, 512 );
 
@@ -71,6 +74,7 @@ int main( int argc, char** argv ) {
   sink->stop();
 
   buffers.clear();
+  source_alsa.reset();
   source.reset();
   sink.reset();
 
