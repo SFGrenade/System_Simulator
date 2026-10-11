@@ -33,6 +33,11 @@ class ALSA {
   // ALSA_detail::snd_shm_area* snd_shm_area_share( ALSA_detail::snd_shm_area * area ) const;
   // int snd_shm_area_destroy( ALSA_detail::snd_shm_area* area ) const;
   int snd_user_file( const char* file, char** result ) const;
+  const char* snd_strerror( int errnum ) const;
+  ALSA_detail::snd_lib_log_handler_t snd_lib_log_set_handler( ALSA_detail::snd_lib_log_handler_t handler ) const;
+  ALSA_detail::snd_lib_log_handler_t snd_lib_log_set_local( ALSA_detail::snd_lib_log_handler_t handler ) const;
+  int snd_lib_error_set_handler( ALSA_detail::snd_lib_error_handler_t handler ) const;
+  ALSA_detail::snd_local_error_handler_t snd_lib_error_set_local( ALSA_detail::snd_local_error_handler_t func ) const;
   int snd_pcm_open( ALSA_detail::snd_pcm_t** pcm, const char* name, ALSA_detail::snd_pcm_stream_t stream, int mode ) const;
   // int snd_pcm_open_lconf( ALSA_detail::snd_pcm_t** pcm, const char* name, ALSA_detail::snd_pcm_stream_t stream, int mode, ALSA_detail::snd_config_t* lconf ) const;
   // int snd_pcm_open_fallback( ALSA_detail::snd_pcm_t** pcm, ALSA_detail::snd_config_t* root, const char* name, const char* orig_name, ALSA_detail::snd_pcm_stream_t stream, int mode ) const;
@@ -407,6 +412,11 @@ class ALSA {
   // ALSA_detail::snd_shm_area_share snd_shm_area_share_ = nullptr;
   // ALSA_detail::snd_shm_area_destroy snd_shm_area_destroy_ = nullptr;
   ALSA_detail::snd_user_file snd_user_file_ = nullptr;
+  ALSA_detail::snd_strerror snd_strerror_ = nullptr;
+  ALSA_detail::snd_lib_log_set_handler snd_lib_log_set_handler_ = nullptr;
+  ALSA_detail::snd_lib_log_set_local snd_lib_log_set_local_ = nullptr;
+  ALSA_detail::snd_lib_error_set_handler snd_lib_error_set_handler_ = nullptr;
+  ALSA_detail::snd_lib_error_set_local snd_lib_error_set_local_ = nullptr;
   ALSA_detail::snd_pcm_open snd_pcm_open_ = nullptr;
   // ALSA_detail::snd_pcm_open_lconf snd_pcm_open_lconf_ = nullptr;
   // ALSA_detail::snd_pcm_open_fallback snd_pcm_open_fallback_ = nullptr;

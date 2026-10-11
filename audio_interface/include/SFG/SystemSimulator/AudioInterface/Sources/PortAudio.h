@@ -19,44 +19,43 @@
 
 namespace SFG::SystemSimulator::AudioInterface::Sources {
 
-class PortAudio {
+struct PortAudioConfig {
+  std::string sourceName = "";
+  std::string apiName = "";
+  int channels = 1;
+  double sampleRate = 44100.0;
+  bool pulling = false;
+  size_t framesPerBuffer = 512;
+};
+
+class PortAudio : public AudioNode< PortAudioConfig >, public ThreadNode {
   public:
-  void init( std::string const& sourceName, std::string const& apiName, bool pulling = false, size_t framesPerBuffer = -1 );
-  void start();
-  void stop();
+  virtual void init( PortAudioConfig const& config ) override;
+  virtual void start() override;
+  virtual void stop() override;
+  virtual void deinit() override;
 
   std::vector< PushAudioSignal >& pushSignals();
   AudioChunk onPullAudio( size_t channel, size_t frames );
 
-  private:
-  void threadRun();
-  PaStreamCallbackResult callback( void const* inputBuffer,
-                                   void* outputBuffer,
-                                   unsigned long framesPerBuffer,
-                                   PaStreamCallbackTimeInfo const* timeInfo,
-                                   PaStreamCallbackFlags statusFlags );
-  static int s_callback( void const* inputBuffer,
-                         void* outputBuffer,
-                         unsigned long framesPerBuffer,
-                         PaStreamCallbackTimeInfo const* timeInfo,
-                         PaStreamCallbackFlags statusFlags,
-                         void* userData );
+  protected:
+  virtual void threadRun() override;
+
+  PaStreamCallbackResult callback( void const* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer, PaStreamCallbackTimeInfo const* timeInfo, PaStreamCallbackFlags statusFlags );
+  static int s_callback( void const* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer, PaStreamCallbackTimeInfo const* timeInfo, PaStreamCallbackFlags statusFlags, void* userData );
 
   private:
   // generic
   Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "Sources::PortAudio" );
-  std::atomic< bool > running_ = false;
   // portaudio
   std::shared_ptr< PaStream > stream_ = nullptr;
   PaStreamParameters parameters_{};
-  double samplerate_ = 0.0;
-  size_t framesPerBuffer_ = 0;
+  PortAudioConfig config_;
   // thread
-  std::atomic< bool > pulling_ = false;
-  std::thread thread_;
-  std::vector< std::shared_ptr< soxr > > soxrs_;  // resampling
-  std::vector< std::unique_ptr< AudioQueue > > audioQueues_;
-  std::vector< PushAudioSignal > pushSignals_;
+  std::atomic< bool > pulling_ = false;                       // wether or not
+  std::vector< std::shared_ptr< soxr > > soxrs_;              // resampling
+  std::vector< std::unique_ptr< AudioQueue > > audioQueues_;  // decoupling
+  std::vector< PushAudioSignal > pushSignals_;                // connections
 };
 
 }  // namespace SFG::SystemSimulator::AudioInterface::Sources

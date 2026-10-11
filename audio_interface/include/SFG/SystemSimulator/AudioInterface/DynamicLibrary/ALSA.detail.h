@@ -49,6 +49,20 @@ using snd_asoundlib_version = const char* (*)( void );
   } while( 0 )
 #endif
 
+#if defined( _WIN32 ) || defined( _WIN64 )
+#define snd_alloca_better( ptr, tType, tSizeof ) \
+  do {                                           \
+    *ptr = (SFG::SystemSimulator::AudioInterface::DynamicLibrary::ALSA_detail::tType##_t*)_alloca( tSizeof##tType##_sizeof() );     \
+    memset( *ptr, 0, tSizeof##tType##_sizeof() );                \
+  } while( 0 )
+#elif defined( __APPLE__ ) || defined( __linux__ )
+#define snd_alloca_better( ptr, tType, tSizeof ) \
+  do {                                           \
+    *ptr = (SFG::SystemSimulator::AudioInterface::DynamicLibrary::ALSA_detail::tType##_t*)alloca( tSizeof##tType##_sizeof() );      \
+    memset( *ptr, 0, tSizeof##tType##_sizeof() );                \
+  } while( 0 )
+#endif
+
 struct snd_async_handler_t;
 
 using snd_async_callback_t = void (*)( snd_async_handler_t* handler );
@@ -83,6 +97,25 @@ using snd_timestamp_t = struct timeval;
 using snd_htimestamp_t = struct timespec;
 
 #pragma endregion global.h
+
+#pragma region error.h
+
+using snd_strerror = const char* (*)( int errnum );
+
+// type
+using snd_lib_log_handler_t = void (*)( int prio, int interface, const char* file, int line, const char* function, int errcode, const char* fmt, ... );
+using snd_lib_log_set_handler = snd_lib_log_handler_t (*)( snd_lib_log_handler_t handler );
+using snd_lib_log_set_local = snd_lib_log_handler_t (*)( snd_lib_log_handler_t handler );
+
+// type
+using snd_lib_error_handler_t = void (*)( const char* file, int line, const char* function, int errcode, const char* fmt, ... ) /* __attribute__ ((format (printf, 5, 6))) */;
+using snd_lib_error_set_handler = int (*)( snd_lib_error_handler_t handler );
+
+// type
+using snd_local_error_handler_t = void (*)( const char* file, int line, const char* func, int errcode, const char* fmt, ... );
+using snd_lib_error_set_local = snd_local_error_handler_t (*)( snd_local_error_handler_t func );
+
+#pragma endregion error.h
 
 #pragma region pcm.h
 
@@ -373,6 +406,7 @@ using snd_pcm_get_params = int (*)( snd_pcm_t* pcm, snd_pcm_uframes_t* buffer_si
 using snd_pcm_info_sizeof = size_t (*)( void );
 
 #define snd_pcm_info_alloca( ptr ) __snd_alloca( ptr, snd_pcm_info )
+#define snd_pcm_info_alloc( ptr, tSizeof ) snd_alloca_better( ptr, snd_pcm_info, tSizeof )
 using snd_pcm_info_malloc = int (*)( snd_pcm_info_t** ptr );
 using snd_pcm_info_free = void (*)( snd_pcm_info_t* obj );
 using snd_pcm_info_copy = void (*)( snd_pcm_info_t* dst, const snd_pcm_info_t* src );
@@ -416,6 +450,7 @@ using snd_pcm_hw_params_get_sync = const unsigned char* (*)( const snd_pcm_hw_pa
 
 using snd_pcm_hw_params_sizeof = size_t (*)( void );
 #define snd_pcm_hw_params_alloca( ptr ) __snd_alloca( ptr, snd_pcm_hw_params )
+#define snd_pcm_hw_params_alloc( ptr, tSizeof ) snd_alloca_better( ptr, snd_pcm_hw_params, tSizeof )
 using snd_pcm_hw_params_malloc = int (*)( snd_pcm_hw_params_t** ptr );
 using snd_pcm_hw_params_free = void (*)( snd_pcm_hw_params_t* obj );
 using snd_pcm_hw_params_copy = void (*)( snd_pcm_hw_params_t* dst, const snd_pcm_hw_params_t* src );
@@ -542,6 +577,7 @@ using snd_pcm_hw_params_get_min_align = int (*)( const snd_pcm_hw_params_t* para
 
 using snd_pcm_sw_params_sizeof = size_t (*)( void );
 #define snd_pcm_sw_params_alloca( ptr ) __snd_alloca( ptr, snd_pcm_sw_params )
+#define snd_pcm_sw_params_alloc( ptr, tSizeof ) snd_alloca_better( ptr, snd_pcm_sw_params, tSizeof )
 using snd_pcm_sw_params_malloc = int (*)( snd_pcm_sw_params_t** ptr );
 using snd_pcm_sw_params_free = void (*)( snd_pcm_sw_params_t* obj );
 using snd_pcm_sw_params_copy = void (*)( snd_pcm_sw_params_t* dst, const snd_pcm_sw_params_t* src );
@@ -566,6 +602,7 @@ using snd_pcm_sw_params_get_silence_size = int (*)( const snd_pcm_sw_params_t* p
 
 using snd_pcm_access_mask_sizeof = size_t (*)( void );
 #define snd_pcm_access_mask_alloca( ptr ) __snd_alloca( ptr, snd_pcm_access_mask )
+#define snd_pcm_access_mask_alloc( ptr, tSizeof ) snd_alloca_better( ptr, snd_pcm_access_mask, tSizeof )
 using snd_pcm_access_mask_malloc = int (*)( snd_pcm_access_mask_t** ptr );
 using snd_pcm_access_mask_free = void (*)( snd_pcm_access_mask_t* obj );
 using snd_pcm_access_mask_copy = void (*)( snd_pcm_access_mask_t* dst, const snd_pcm_access_mask_t* src );
@@ -578,6 +615,7 @@ using snd_pcm_access_mask_reset = void (*)( snd_pcm_access_mask_t* mask, snd_pcm
 
 using snd_pcm_format_mask_sizeof = size_t (*)( void );
 #define snd_pcm_format_mask_alloca( ptr ) __snd_alloca( ptr, snd_pcm_format_mask )
+#define snd_pcm_format_mask_alloc( ptr, tSizeof ) snd_alloca_better( ptr, snd_pcm_format_mask, tSizeof )
 using snd_pcm_format_mask_malloc = int (*)( snd_pcm_format_mask_t** ptr );
 using snd_pcm_format_mask_free = void (*)( snd_pcm_format_mask_t* obj );
 using snd_pcm_format_mask_copy = void (*)( snd_pcm_format_mask_t* dst, const snd_pcm_format_mask_t* src );
@@ -590,6 +628,7 @@ using snd_pcm_format_mask_reset = void (*)( snd_pcm_format_mask_t* mask, snd_pcm
 
 using snd_pcm_subformat_mask_sizeof = size_t (*)( void );
 #define snd_pcm_subformat_mask_alloca( ptr ) __snd_alloca( ptr, snd_pcm_subformat_mask )
+#define snd_pcm_subformat_mask_alloc( ptr, tSizeof ) snd_alloca_better( ptr, snd_pcm_subformat_mask, tSizeof )
 using snd_pcm_subformat_mask_malloc = int (*)( snd_pcm_subformat_mask_t** ptr );
 using snd_pcm_subformat_mask_free = void (*)( snd_pcm_subformat_mask_t* obj );
 using snd_pcm_subformat_mask_copy = void (*)( snd_pcm_subformat_mask_t* dst, const snd_pcm_subformat_mask_t* src );
@@ -602,6 +641,7 @@ using snd_pcm_subformat_mask_reset = void (*)( snd_pcm_subformat_mask_t* mask, s
 
 using snd_pcm_status_sizeof = size_t (*)( void );
 #define snd_pcm_status_alloca( ptr ) __snd_alloca( ptr, snd_pcm_status )
+#define snd_pcm_status_alloc( ptr, tSizeof ) snd_alloca_better( ptr, snd_pcm_status, tSizeof )
 using snd_pcm_status_malloc = int (*)( snd_pcm_status_t** ptr );
 using snd_pcm_status_free = void (*)( snd_pcm_status_t* obj );
 using snd_pcm_status_copy = void (*)( snd_pcm_status_t* dst, const snd_pcm_status_t* src );

@@ -7,6 +7,13 @@
 // Library Includes
 #include <boost/signals2.hpp>
 
+// C++ Includes
+#include <any>
+#include <atomic>
+#include <map>
+#include <string>
+#include <thread>
+
 namespace bs2 = boost::signals2;
 
 namespace SFG::SystemSimulator::AudioInterface {
@@ -22,12 +29,8 @@ bs2::connection conPush2Down( PushAudioSignal& pushSignal, std::shared_ptr< Down
 }
 
 template < class Push, class Down >
-bs2::connection conPush2Down( PushAudioSignal& pushSignal,
-                              std::shared_ptr< Down > downStream,
-                              size_t channel,
-                              void ( Down::*downStreamFunc )( size_t, AudioChunk const& ) ) {
-  return pushSignal.connect(
-      PushAudioSignal::slot_type( std::bind( downStreamFunc, downStream.get(), channel, std::placeholders::_1 ) ).track_foreign( downStream ) );
+bs2::connection conPush2Down( PushAudioSignal& pushSignal, std::shared_ptr< Down > downStream, size_t channel, void ( Down::*downStreamFunc )( size_t, AudioChunk const& ) ) {
+  return pushSignal.connect( PushAudioSignal::slot_type( std::bind( downStreamFunc, downStream.get(), channel, std::placeholders::_1 ) ).track_foreign( downStream ) );
 }
 
 template < class Pull, class Up >
@@ -37,8 +40,28 @@ bs2::connection conPull2Up( PullAudioSignal& pullSignal, std::shared_ptr< Up > u
 
 template < class Pull, class Up >
 bs2::connection conPull2Up( PullAudioSignal& pullSignal, std::shared_ptr< Up > upStream, size_t channel, AudioChunk ( Up::*upStreamFunc )( size_t, size_t ) ) {
-  return pullSignal.connect(
-      PullAudioSignal::slot_type( std::bind( upStreamFunc, upStream.get(), channel, std::placeholders::_1 ) ).track_foreign( upStream ) );
+  return pullSignal.connect( PullAudioSignal::slot_type( std::bind( upStreamFunc, upStream.get(), channel, std::placeholders::_1 ) ).track_foreign( upStream ) );
 }
+
+template <typename Config>
+class AudioNode {
+  public:
+  virtual void init( Config const& config ) = 0;
+  virtual void start() = 0;
+  virtual void stop() = 0;
+  virtual void deinit() = 0;
+};
+
+class ThreadNode {
+  public:
+  virtual ~ThreadNode() = default;
+
+  protected:
+  virtual void threadRun() = 0;
+
+  protected:
+  std::atomic< bool > running_ = false;
+  std::thread thread_;
+};
 
 }  // namespace SFG::SystemSimulator::AudioInterface

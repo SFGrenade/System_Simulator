@@ -16,6 +16,11 @@ ALSA::ALSA() {
   // snd_shm_area_share_ = loadSymbol< decltype( snd_shm_area_share_ ) >( library_, "snd_shm_area_share" );
   // snd_shm_area_destroy_ = loadSymbol< decltype( snd_shm_area_destroy_ ) >( library_, "snd_shm_area_destroy" );
   snd_user_file_ = loadSymbol< decltype( snd_user_file_ ) >( library_, "snd_user_file" );
+  snd_strerror_ = loadSymbol< decltype( snd_strerror_ ) >( library_, "snd_strerror" );
+  snd_lib_log_set_handler_ = loadSymbol< decltype( snd_lib_log_set_handler_ ) >( library_, "snd_lib_log_set_handler" );
+  snd_lib_log_set_local_ = loadSymbol< decltype( snd_lib_log_set_local_ ) >( library_, "snd_lib_log_set_local" );
+  snd_lib_error_set_handler_ = loadSymbol< decltype( snd_lib_error_set_handler_ ) >( library_, "snd_lib_error_set_handler" );
+  snd_lib_error_set_local_ = loadSymbol< decltype( snd_lib_error_set_local_ ) >( library_, "snd_lib_error_set_local" );
   snd_pcm_open_ = loadSymbol< decltype( snd_pcm_open_ ) >( library_, "snd_pcm_open" );
   // snd_pcm_open_lconf_ = loadSymbol< decltype( snd_pcm_open_lconf_ ) >( library_, "snd_pcm_open_lconf" );
   // snd_pcm_open_fallback_ = loadSymbol< decltype( snd_pcm_open_fallback_ ) >( library_, "snd_pcm_open_fallback" );
@@ -388,6 +393,11 @@ bool ALSA::isAvailable() const {
       // && snd_shm_area_share_
       // && snd_shm_area_destroy_
       && snd_user_file_
+      && snd_strerror_
+      && snd_lib_log_set_handler_
+      && snd_lib_log_set_local_
+      && snd_lib_error_set_handler_
+      && snd_lib_error_set_local_
       && snd_pcm_open_
       // && snd_pcm_open_lconf_
       // && snd_pcm_open_fallback_
@@ -777,6 +787,21 @@ void* ALSA::snd_async_handler_get_callback_private( ALSA_detail::snd_async_handl
 // }
 int ALSA::snd_user_file( const char* file, char** result ) const {
   return snd_user_file_( file, result );
+}
+const char* ALSA::snd_strerror( int errnum ) const {
+  return snd_strerror_( errnum );
+}
+ALSA_detail::snd_lib_log_handler_t ALSA::snd_lib_log_set_handler( ALSA_detail::snd_lib_log_handler_t handler ) const {
+  return snd_lib_log_set_handler_( handler );
+}
+ALSA_detail::snd_lib_log_handler_t ALSA::snd_lib_log_set_local( ALSA_detail::snd_lib_log_handler_t handler ) const {
+  return snd_lib_log_set_local_( handler );
+}
+int ALSA::snd_lib_error_set_handler( ALSA_detail::snd_lib_error_handler_t handler ) const {
+  return snd_lib_error_set_handler_( handler );
+}
+ALSA_detail::snd_local_error_handler_t ALSA::snd_lib_error_set_local( ALSA_detail::snd_local_error_handler_t func ) const {
+  return snd_lib_error_set_local_( func );
 }
 int ALSA::snd_pcm_open( ALSA_detail::snd_pcm_t** pcm, const char* name, ALSA_detail::snd_pcm_stream_t stream, int mode ) const {
   return snd_pcm_open_( pcm, name, stream, mode );

@@ -44,8 +44,13 @@ int main( int argc, char** argv ) {
   std::shared_ptr< Sources::PortAudio > source = std::make_shared< Sources::PortAudio >();
   std::shared_ptr< Sinks::PortAudio > sink = std::make_shared< Sinks::PortAudio >();
 
-  source_alsa->init();
-  source->init( "Microphone", "WASAPI", false, 512 );
+  source_alsa->init( Sources::ALSAConfig{} );
+  source->init( Sources::PortAudioConfig{
+      .sourceName = "Microphone",
+      .apiName = "WASAPI",
+      .pulling = false,
+      .framesPerBuffer = 512,
+  } );
   sink->init( "Headphones", "WASAPI", false, 512 );
 
   std::vector< PushAudioSignal >& sourceOutput = source->pushSignals();
