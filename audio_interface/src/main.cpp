@@ -1,8 +1,7 @@
 // Project Includes
 #include "SFG/SystemSimulator/AudioInterface/Sinks/PortAudio.h"
-#include "SFG/SystemSimulator/AudioInterface/Sources/ALSA.h"
 #include "SFG/SystemSimulator/AudioInterface/Sources/PortAudio.h"
-#include "SFG/SystemSimulator/AudioInterface/Transforms/Buffer.h"
+#include "SFG/SystemSimulator/AudioInterface/Transforms/MonoToN.h"
 #include "SFG/SystemSimulator/AudioInterface/_portaudio.h"
 
 // Project Includes
@@ -12,8 +11,6 @@
 
 // C++ Includes
 #include <chrono>
-#include <mutex>
-#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
@@ -40,46 +37,39 @@ int main( int argc, char** argv ) {
   }
   PA::ListInfo();
 
-  std::shared_ptr< Sources::ALSA > source_alsa = std::make_shared< Sources::ALSA >();
   std::shared_ptr< Sources::PortAudio > source = std::make_shared< Sources::PortAudio >();
+  std::shared_ptr< Transforms::MonoToN > multiplex = std::make_shared< Transforms::MonoToN >();
   std::shared_ptr< Sinks::PortAudio > sink = std::make_shared< Sinks::PortAudio >();
 
-  source_alsa->init( Sources::ALSAConfig{} );
-  source->init( Sources::PortAudioConfig{
-      .sourceName = "Microphone",
-      .apiName = "WASAPI",
-      .pulling = false,
-      .framesPerBuffer = 512,
+  source->init( { { "sourceName", std::string( "Microphone" ) }, { "apiName", std::string( "WASAPI" ) }, { "channels", size_t( 1 ) }, { "sampleRate", double( 0.0 ) }, { "framesPerBuffer", size_t( 1024 ) } } );
+  multiplex->init( { { "amount", size_t( 1 ) } } );
+  sink->init( { { "sourceName", std::string( "Headphones" ) }, { "apiName", std::string( "WASAPI" ) }, { "channels", size_t( 1 ) }, { "sampleRate", double( 0.0 ) }, { "framesPerBuffer", size_t( 1024 ) } } );
+
+  // connections
+  ( multiplex->inPorts["main"][0] ) = ( source->outPorts["main"][0] );
+  ( sink->inPorts["main"][0] ) = ( multiplex->outPorts["main"][0] );
+  // ( sink->inPorts["main"][1] ) = ( multiplex->outPorts["main"][1] );
+
+  bool done = false;
+  std::thread tmp( [&]() {
+    while( !done ) {
+      if( !source->update() )
+        continue;
+      multiplex->update();
+      sink->update();
+    }
   } );
-  sink->init( "Headphones", "WASAPI", false, 512 );
-
-  std::vector< PushAudioSignal >& sourceOutput = source->pushSignals();
-  std::vector< PullAudioSignal >& sinkInput = sink->pullSignals();
-
-  std::vector< std::shared_ptr< Transforms::Buffer > > buffers;
-  buffers.reserve( sourceOutput.size() );
-  for( size_t i = 0; i < sourceOutput.size(); i++ ) {
-    std::shared_ptr< Transforms::Buffer > buffer = std::make_shared< Transforms::Buffer >();
-
-    buffers.push_back( buffer );
-
-    boost::signals2::connection conDown = conPush2Down< PushAudioSignal, Transforms::Buffer >( sourceOutput[i], buffer, &Transforms::Buffer::onPushAudio );
-    boost::signals2::connection conUp = conPull2Up< PullAudioSignal, Transforms::Buffer >( sinkInput[i], buffer, &Transforms::Buffer::onPullAudio );
-
-    spdlog::debug( fmt::runtime( "main - Source Stream {:d} connected to buffer: {}" ), i, conDown.connected() );
-    spdlog::debug( fmt::runtime( "main - Sink Stream {:d} connected to buffer: {}" ), i, conUp.connected() );
-  }
-
-  source->start();
-  sink->start();
 
   std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
 
-  source->stop();
-  sink->stop();
+  done = true;
+  if( tmp.joinable() ) {
+    tmp.join();
+  }
 
-  buffers.clear();
-  source_alsa.reset();
+  source->deinit();
+  sink->deinit();
+
   source.reset();
   sink.reset();
 

@@ -1,0 +1,37 @@
+#pragma once
+
+// Project Includes
+#include "SFG/SystemSimulator/AudioInterface/Types/Node.h"
+
+// Project Includes
+#include <SFG/SystemSimulator/Logger/_spdlog.h>
+#include <SFG/SystemSimulator/Logger/loggerFactory.h>
+
+// C++ Includes
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace SFG::SystemSimulator::AudioInterface::Transforms {
+
+/*
+  config is:
+  {
+    "amount": 2
+  }
+*/
+class MonoToN : public Types::AudioTransformNode {
+  public:
+  virtual ~MonoToN() = default;
+  virtual void init( std::map< std::string, std::any > const& config ) override;
+  virtual void updateConfig( std::string const& option, std::any const& newValue ) override;
+  virtual bool update() override;
+  virtual void deinit() override;
+
+  private:
+  // generic
+  Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "Transforms::MonoToN" );
+  size_t amount_ = 2;
+};
+
+}  // namespace SFG::SystemSimulator::AudioInterface::Transforms

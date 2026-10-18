@@ -1,7 +1,7 @@
 #pragma once
 
 // Project Includes
-#include "SFG/SystemSimulator/AudioInterface/AudioNode.h"
+#include "SFG/SystemSimulator/AudioInterface/Types/Node.h"
 #include "SFG/SystemSimulator/AudioInterface/_portaudio.h"
 
 // Project Includes
@@ -12,50 +12,43 @@
 #include <soxr.h>
 
 // C++ Includes
-#include <atomic>
+#include <any>
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace SFG::SystemSimulator::AudioInterface::Sinks {
 
-class PortAudio {
+/*
+  config is:
+  {
+    "sourceName" = "",
+    "apiName" = "",
+    "channels" = 1,
+    "sampleRate" = 44100.0
+  }
+*/
+class PortAudio : public Types::AudioSinkNode {
   public:
-  void init( std::string const& sourceName, std::string const& apiName, bool pushing = false, size_t framesPerBuffer = -1 );
-  void start();
-  void stop();
-
-  std::vector< PullAudioSignal >& pullSignals();
-  void onPushAudio( size_t channel, AudioChunk const& samples );
-
-  private:
-  void threadRun();
-  PaStreamCallbackResult callback( void const* inputBuffer,
-                                   void* outputBuffer,
-                                   unsigned long framesPerBuffer,
-                                   PaStreamCallbackTimeInfo const* timeInfo,
-                                   PaStreamCallbackFlags statusFlags );
-  static int s_callback( void const* inputBuffer,
-                         void* outputBuffer,
-                         unsigned long framesPerBuffer,
-                         PaStreamCallbackTimeInfo const* timeInfo,
-                         PaStreamCallbackFlags statusFlags,
-                         void* userData );
+  virtual ~PortAudio() = default;
+  virtual void init( std::map< std::string, std::any > const& config ) override;
+  virtual void updateConfig( std::string const& option, std::any const& newValue ) override;
+  virtual bool update() override;
+  virtual void deinit() override;
 
   private:
   // generic
   Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "Sinks::PortAudio" );
-  std::atomic< bool > running_ = false;
   // portaudio
   std::shared_ptr< PaStream > stream_ = nullptr;
   PaStreamParameters parameters_{};
-  double samplerate_ = 0.0;
-  size_t framesPerBuffer_ = 0;
-  // thread
-  std::atomic< bool > pushing_ = false;
-  std::thread thread_;
+  std::string sourceName_ = "";
+  std::string apiName_ = "";
+  size_t channels_ = 1;
+  double sampleRate_ = 0.0;
   std::vector< std::shared_ptr< soxr > > soxrs_;  // resampling
-  std::vector< std::unique_ptr< AudioQueue > > audioQueues_;
-  std::vector< PullAudioSignal > pullSignals_;
+  soxr_io_spec_t soxrIoSpec_;                     // resampling
 };
 
 }  // namespace SFG::SystemSimulator::AudioInterface::Sinks
