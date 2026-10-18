@@ -26,7 +26,8 @@ namespace SFG::SystemSimulator::AudioInterface::Sources {
     "sourceName" = "",
     "apiName" = "",
     "channels" = 1,
-    "sampleRate" = 44100.0
+    "sampleRate" = 0.0,
+    "framesPerBuffer" = 0
   }
 */
 class PortAudio : public Types::AudioSourceNode {
@@ -34,21 +35,28 @@ class PortAudio : public Types::AudioSourceNode {
   virtual ~PortAudio() = default;
   virtual void init( std::map< std::string, std::any > const& config ) override;
   virtual void updateConfig( std::string const& option, std::any const& newValue ) override;
-  virtual bool update() override;
+  virtual void update() override;
   virtual void deinit() override;
 
   private:
   // generic
   Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "Sources::PortAudio" );
   // portaudio
-  std::shared_ptr< PaStream > stream_ = nullptr;
+  std::unique_ptr< PaStream, decltype( &Pa_CloseStream ) > stream_{ nullptr, Pa_CloseStream };
   PaStreamParameters parameters_{};
   std::string sourceName_ = "";
   std::string apiName_ = "";
   size_t channels_ = 1;
   double sampleRate_ = 0.0;
-  std::vector< std::shared_ptr< soxr > > soxrs_;  // resampling
-  soxr_io_spec_t soxrIoSpec_;                     // resampling
+  size_t framesPerBuffer_ = 0;
+  std::unique_ptr< soxr, decltype( &soxr_delete ) > resampler_{ nullptr, soxr_delete };
+
+  // now for performance
+  private:
+  size_t rawFrames_ = 0;
+  size_t internalFrames_ = 0;
+  std::vector< float > rawBuffer_{};
+  std::vector< float > internalBuffer_{};
 };
 
 }  // namespace SFG::SystemSimulator::AudioInterface::Sources

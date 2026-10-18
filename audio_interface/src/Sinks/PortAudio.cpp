@@ -16,7 +16,8 @@ void PortAudio::init( std::map< std::string, std::any > const& config ) {
   apiName_ = std::any_cast< std::string >( config.at( "apiName" ) );
   channels_ = std::any_cast< size_t >( config.at( "channels" ) );
   sampleRate_ = std::any_cast< double >( config.at( "sampleRate" ) );
-  logger_->trace( fmt::runtime( "init( {:?}, {:?}, {:d}, {:f} )" ), sourceName_, apiName_, channels_, sampleRate_ );
+  framesPerBuffer_ = std::any_cast< size_t >( config.at( "framesPerBuffer" ) );
+  logger_->trace( fmt::runtime( "init( {:?}, {:?}, {:d}, {:f}, {:d} )" ), sourceName_, apiName_, channels_, sampleRate_, framesPerBuffer_ );
 
   PaDeviceIndex outputDeviceIndex = PA::GetDevice( sourceName_, apiName_ );
 
@@ -25,9 +26,10 @@ void PortAudio::init( std::map< std::string, std::any > const& config ) {
     parameters_.device = outputDeviceIndex;
     parameters_.channelCount = channels_;
     parameters_.sampleFormat = PA::float32;
-    parameters_.suggestedLatency = 0;
+    parameters_.suggestedLatency = deviceInfo->defaultLowOutputLatency;
     parameters_.hostApiSpecificStreamInfo = nullptr;
     sampleRate_ = ( sampleRate_ <= 0.0 ) ? deviceInfo->defaultSampleRate : sampleRate_;
+    framesPerBuffer_ = ( framesPerBuffer_ <= 0 ) ? size_t( std::ceil( sampleRate_ * 0.02 ) ) : framesPerBuffer_;
 
     logger_->info( fmt::runtime( "Settings:" ) );
     logger_->info( fmt::runtime( "- device: {:d}" ), parameters_.device );
@@ -36,30 +38,24 @@ void PortAudio::init( std::map< std::string, std::any > const& config ) {
     logger_->info( fmt::runtime( "- suggestedLatency: {:f}" ), parameters_.suggestedLatency );
     logger_->info( fmt::runtime( "- hostApiSpecificStreamInfo: {:p}" ), parameters_.hostApiSpecificStreamInfo );
     logger_->info( fmt::runtime( "- sampleRate: {:f}" ), sampleRate_ );
+    logger_->info( fmt::runtime( "- framesPerBuffer: {:d}" ), framesPerBuffer_ );
   }
   {
     PaStream* tmpStream = nullptr;
-    if( PaError error = Pa_OpenStream( &tmpStream, nullptr, &parameters_, sampleRate_, PA::framesPerBufferUnspecified, PA::noFlag, nullptr, this ); error != PaErrorCode::paNoError ) {
+    if( PaError error = Pa_OpenStream( &tmpStream, nullptr, &parameters_, sampleRate_, framesPerBuffer_, PA::noFlag, nullptr, nullptr ); error != PaErrorCode::paNoError ) {
       logger_->error( fmt::runtime( "PortAudio Pa_OpenStream error: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );
       return deinit();
     }
-    stream_ = std::shared_ptr< PaStream >( tmpStream, []( PaStream* p ) { Pa_CloseStream( p ); } );
+    stream_.reset( tmpStream );
   }
 
-  soxrIoSpec_ = soxr_io_spec( SOXR_FLOAT32_I, SOXR_FLOAT32_I );
-  soxrIoSpec_.scale = 1.0;
-  soxrIoSpec_.flags = 0;
-  soxrIoSpec_.e = nullptr;
-  soxrs_.clear();
-  soxrs_.reserve( channels_ );
-  for( size_t channel = 0; channel < channels_; channel++ ) {
+  {
     soxr_error_t soxError;
-    std::shared_ptr< soxr > tmp = std::shared_ptr< soxr >( soxr_create( Types::INTERNAL_SAMPLERATE, sampleRate_, 1, &soxError, &soxrIoSpec_, nullptr, nullptr ), []( soxr_t p ) { soxr_delete( p ); } );
+    resampler_.reset( soxr_create( Types::INTERNAL_SAMPLERATE, sampleRate_, channels_, &soxError, nullptr, nullptr, nullptr ) );
     if( soxError ) {
       logger_->error( fmt::runtime( "soxr soxr_create error: {:s}" ), soxError );
       return deinit();
     }
-    soxrs_.push_back( tmp );
   }
   inPorts = { { "main", {} } };
   inPorts["main"].resize( channels_ );
@@ -68,66 +64,77 @@ void PortAudio::init( std::map< std::string, std::any > const& config ) {
     logger_->error( fmt::runtime( "PortAudio Pa_StartStream error: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );
     return deinit();
   }
+
+  internalFrames_ = std::ceil( double( framesPerBuffer_ ) * Types::INTERNAL_SAMPLERATE / sampleRate_ );
+  internalFrames_ = std::min< size_t >( internalFrames_, Types::AUDIO_MESSAGE_CAPACITY );
+  rawFrames_ = std::ceil( double( internalFrames_ ) * sampleRate_ / Types::INTERNAL_SAMPLERATE );
+  rawBuffer_.resize( channels_ * rawFrames_, 0.0f );
+  internalBuffer_.resize( channels_ * internalFrames_, 0.0f );
+  logger_->debug( fmt::runtime( "using {:d} internal and {:d} raw frames" ), internalFrames_, rawFrames_ );
 }
 
 void PortAudio::updateConfig( std::string const& option, std::any const& newValue ) {
-  logger_->trace( fmt::runtime( "deinit( option={:?}, newValue={} )" ), option, newValue.type().name() );
+  logger_->trace( fmt::runtime( "updateConfig( option={:?}, newValue={} )" ), option, newValue.type().name() );
 }
 
-bool PortAudio::update() {
-  size_t rawFrames = std::min< size_t >( Pa_GetStreamWriteAvailable( stream_.get() ), Types::AUDIO_MESSAGE_CAPACITY );
-  size_t internalFrames = std::ceil( double( rawFrames ) * Types::INTERNAL_SAMPLERATE / sampleRate_ );
-
-  if( rawFrames <= 0 ) {
-    return false;
+void PortAudio::update() {
+  if( !stream_ ) {
+    return;
   }
 
-  std::vector< float > rawBuffer( channels_ * rawFrames, 0.0f );
-
+  auto& inPort = inPorts["main"];
   for( size_t channel = 0; channel < channels_; channel++ ) {
-    std::vector< float > internalBufferChannel( internalFrames, 0.0f );
-    // for( size_t frame = 0; frame < internalFrames; frame++ ) {
-    //   if( inPorts["main"][channel] ) {
-    //     inPorts["main"][channel]->pop( internalBufferChannel[frame] );
-    //   }
-    // }
-    if( inPorts["main"][channel] ) {
-      inPorts["main"][channel]->pop( internalBufferChannel.data(), internalFrames );
+    auto& inPortChannel = inPort[channel];
+    if( !inPortChannel ) {
+      for( size_t frame = 0; frame < ( internalFrames_ ); frame++ ) {
+        internalBuffer_[( frame * channels_ ) + channel] = 0.0f;
+      }
+    } else {
+      for( size_t frame = 0; frame < ( internalFrames_ ); frame++ ) {
+        float tmp = 0.0f;
+        inPortChannel->pop( tmp );
+        internalBuffer_[( frame * channels_ ) + channel] = tmp;
+      }
     }
+  }
 
-    std::vector< float > rawBufferChannel( rawFrames, 0.0f );
-
-    size_t internalFramesUsed = 0;
-    size_t rawFramesUsed = 0;
-    soxr_error_t soxError = soxr_process( soxrs_[channel].get(), internalBufferChannel.data(), internalFrames, &internalFramesUsed, rawBufferChannel.data(), rawFrames, &rawFramesUsed );
+  size_t internalFramesUsed = 0;
+  size_t rawFramesUsed = 0;
+  while( rawFramesUsed < rawFrames_ ) {
+    size_t internalFramesProcessed = 0;
+    size_t rawFramesProcessed = 0;
+    soxr_error_t soxError = soxr_process( resampler_.get(), internalBuffer_.data() + ( internalFramesUsed * channels_ ), internalFrames_ - internalFramesUsed, &internalFramesProcessed, rawBuffer_.data() + ( rawFramesUsed * channels_ ), rawFrames_ - rawFramesUsed, &rawFramesProcessed );
     if( soxError ) {
       logger_->error( fmt::runtime( "soxr soxr_process error: {:s}" ), soxError );
+      break;
     }
-    logger_->trace( fmt::runtime( "called soxr_process with: {:d} (act: {:d}) => {:d} (act: {:d})" ), rawFrames, rawFramesUsed, internalFrames, internalFramesUsed );
-
-    for( size_t frame = 0; frame < rawFramesUsed; frame++ ) {
-      rawBuffer[( frame * channels_ ) + channel] = rawBufferChannel[frame];
+    if( rawFramesProcessed == 0 && internalFramesProcessed == 0 ) {
+      logger_->debug( fmt::runtime( "soxr made no progress; input backlogged" ) );
+      break;
     }
+    internalFramesUsed += internalFramesProcessed;
+    rawFramesUsed += rawFramesProcessed;
   }
+  logger_->trace( fmt::runtime( "soxr: {:d} (act={:d}) => {:d} (act={:d})" ), internalFrames_, internalFramesUsed, rawFrames_, rawFramesUsed );
 
-  if( PaError error = Pa_WriteStream( stream_.get(), rawBuffer.data(), rawFrames ); error != PaErrorCode::paNoError ) {
+  if( PaError error = Pa_WriteStream( stream_.get(), rawBuffer_.data(), rawFramesUsed ); error != PaErrorCode::paNoError ) {
     logger_->warn( fmt::runtime( "PortAudio Pa_WriteStream: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );
   }
-
-  return true;
 }
 
 void PortAudio::deinit() {
   logger_->trace( fmt::runtime( "deinit()" ) );
 
-  if( PaError error = Pa_StopStream( stream_.get() ); error != PaErrorCode::paNoError ) {
-    logger_->error( fmt::runtime( "PortAudio Pa_StopStream error: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );
+  if( stream_ ) {
+    if( PaError error = Pa_StopStream( stream_.get() ); error != PaErrorCode::paNoError ) {
+      logger_->error( fmt::runtime( "PortAudio Pa_StopStream error: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );
+    }
   }
 
   stream_.reset();
 
-  std::vector< std::shared_ptr< soxr > >( 0 ).swap( soxrs_ );
-  std::vector< Types::InputPort< Types::AudioMessage > >( 0 ).swap( inPorts["main"] );
+  resampler_.reset();
+  inPorts["main"] = {};
 }
 
 }  // namespace SFG::SystemSimulator::AudioInterface::Sinks

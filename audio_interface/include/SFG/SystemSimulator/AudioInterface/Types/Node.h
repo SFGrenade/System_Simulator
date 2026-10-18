@@ -17,7 +17,7 @@ class Node {
   virtual ~Node() = default;
   virtual void init( std::map< std::string, std::any > const& config ) = 0;
   virtual void updateConfig( std::string const& option, std::any const& newValue ) = 0;
-  virtual bool update() = 0;
+  virtual void update() = 0;
   virtual void deinit() = 0;
 };
 

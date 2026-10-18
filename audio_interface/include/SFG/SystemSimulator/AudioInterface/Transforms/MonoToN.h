@@ -25,7 +25,7 @@ class MonoToN : public Types::AudioTransformNode {
   virtual ~MonoToN() = default;
   virtual void init( std::map< std::string, std::any > const& config ) override;
   virtual void updateConfig( std::string const& option, std::any const& newValue ) override;
-  virtual bool update() override;
+  virtual void update() override;
   virtual void deinit() override;
 
   private:
