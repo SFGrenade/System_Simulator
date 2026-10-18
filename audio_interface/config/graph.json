@@ -1,0 +1,59 @@
+{
+  "nodes": [
+    {
+      "name": "microphone",
+      "type": "Sources::PortAudio",
+      "config": {
+        "sourceName": "Microphone",
+        "apiName": "WASAPI",
+        "channels": 1,
+        "sampleRate": 48000.0,
+        "framesPerBuffer": 48000
+      }
+    },
+    {
+      "name": "multiplex",
+      "type": "Transforms::MonoToN",
+      "config": {
+        "amount": 2
+      }
+    },
+    {
+      "name": "headphones",
+      "type": "Sinks::PortAudio",
+      "config": {
+        "sourceName": "Headphones",
+        "apiName": "WASAPI",
+        "channels": 2,
+        "sampleRate": 48000.0,
+        "framesPerBuffer": 48000
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from-node": "microphone",
+      "from-port": "main",
+      "from-channel": 0,
+      "to-node": "multiplex",
+      "to-port": "main",
+      "to-channel": 0
+    },
+    {
+      "from-node": "multiplex",
+      "from-port": "main",
+      "from-channel": 0,
+      "to-node": "headphones",
+      "to-port": "main",
+      "to-channel": 0
+    },
+    {
+      "from-node": "multiplex",
+      "from-port": "main",
+      "from-channel": 1,
+      "to-node": "headphones",
+      "to-port": "main",
+      "to-channel": 1
+    }
+  ]
+}
