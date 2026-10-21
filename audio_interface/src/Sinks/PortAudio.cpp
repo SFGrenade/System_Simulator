@@ -14,9 +14,9 @@ namespace SFG::SystemSimulator::AudioInterface::Sinks {
 void PortAudio::init( std::map< std::string, std::any > const& config ) {
   sourceName_ = std::any_cast< std::string >( config.at( "sourceName" ) );
   apiName_ = std::any_cast< std::string >( config.at( "apiName" ) );
-  channels_ = std::any_cast< size_t >( config.at( "channels" ) );
+  channels_ = std::any_cast< int64_t >( config.at( "channels" ) );
   sampleRate_ = std::any_cast< double >( config.at( "sampleRate" ) );
-  framesPerBuffer_ = std::any_cast< size_t >( config.at( "framesPerBuffer" ) );
+  framesPerBuffer_ = std::any_cast< int64_t >( config.at( "framesPerBuffer" ) );
   logger_->trace( fmt::runtime( "init( {:?}, {:?}, {:d}, {:f}, {:d} )" ), sourceName_, apiName_, channels_, sampleRate_, framesPerBuffer_ );
 
   PaDeviceIndex outputDeviceIndex = PA::GetDevice( sourceName_, apiName_ );
@@ -29,7 +29,7 @@ void PortAudio::init( std::map< std::string, std::any > const& config ) {
     parameters_.suggestedLatency = deviceInfo->defaultLowOutputLatency;
     parameters_.hostApiSpecificStreamInfo = nullptr;
     sampleRate_ = ( sampleRate_ <= 0.0 ) ? deviceInfo->defaultSampleRate : sampleRate_;
-    framesPerBuffer_ = ( framesPerBuffer_ <= 0 ) ? size_t( std::ceil( sampleRate_ * 0.02 ) ) : framesPerBuffer_;
+    framesPerBuffer_ = ( framesPerBuffer_ <= 0 ) ? int64_t( std::ceil( sampleRate_ * 0.02 ) ) : framesPerBuffer_;
 
     logger_->info( fmt::runtime( "Settings:" ) );
     logger_->info( fmt::runtime( "- device: {:d}" ), parameters_.device );
@@ -115,7 +115,7 @@ void PortAudio::update() {
     internalFramesUsed += internalFramesProcessed;
     rawFramesUsed += rawFramesProcessed;
   }
-  logger_->trace( fmt::runtime( "soxr: {:d} (act={:d}) => {:d} (act={:d})" ), internalFrames_, internalFramesUsed, rawFrames_, rawFramesUsed );
+  // logger_->trace( fmt::runtime( "soxr: {:d} (act={:d}) => {:d} (act={:d})" ), internalFrames_, internalFramesUsed, rawFrames_, rawFramesUsed );
 
   if( PaError error = Pa_WriteStream( stream_.get(), rawBuffer_.data(), rawFramesUsed ); error != PaErrorCode::paNoError ) {
     logger_->warn( fmt::runtime( "PortAudio Pa_WriteStream: {:d}, {:s}" ), error, Pa_GetErrorText( error ) );

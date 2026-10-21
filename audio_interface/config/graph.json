@@ -1,46 +1,65 @@
 {
-  "nodes": [
-    {
-      "name": "microphone",
+  "nodes": {
+    "microphone": {
       "type": "Sources::PortAudio",
       "config": {
         "sourceName": "Microphone",
         "apiName": "WASAPI",
-        "channels": 1,
-        "sampleRate": 48000.0,
-        "framesPerBuffer": 48000
+        "channels": 2,
+        "sampleRate": 0.0,
+        "framesPerBuffer": 0
       }
     },
-    {
-      "name": "multiplex",
+    "ntoMono": {
+      "type": "Transforms::NtoMono",
+      "config": {
+        "amount": 2
+      }
+    },
+    "monoToN": {
       "type": "Transforms::MonoToN",
       "config": {
         "amount": 2
       }
     },
-    {
-      "name": "headphones",
+    "headphones": {
       "type": "Sinks::PortAudio",
       "config": {
         "sourceName": "Headphones",
         "apiName": "WASAPI",
         "channels": 2,
-        "sampleRate": 48000.0,
-        "framesPerBuffer": 48000
+        "sampleRate": 0.0,
+        "framesPerBuffer": 0
       }
     }
-  ],
+  },
   "connections": [
     {
       "from-node": "microphone",
       "from-port": "main",
       "from-channel": 0,
-      "to-node": "multiplex",
+      "to-node": "ntoMono",
       "to-port": "main",
       "to-channel": 0
     },
     {
-      "from-node": "multiplex",
+      "from-node": "microphone",
+      "from-port": "main",
+      "from-channel": 1,
+      "to-node": "ntoMono",
+      "to-port": "main",
+      "to-channel": 1
+    },
+    {
+      "from-node": "ntoMono",
+      "from-port": "main",
+      "from-channel": 0,
+      "to-node": "monoToN",
+      "to-port": "main",
+      "to-channel": 0
+    },
+    {
+      "from-node": "monoToN",
       "from-port": "main",
       "from-channel": 0,
       "to-node": "headphones",
@@ -48,7 +67,7 @@
       "to-channel": 0
     },
     {
-      "from-node": "multiplex",
+      "from-node": "monoToN",
       "from-port": "main",
       "from-channel": 1,
       "to-node": "headphones",

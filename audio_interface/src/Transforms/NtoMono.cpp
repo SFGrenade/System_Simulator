@@ -4,7 +4,7 @@
 namespace SFG::SystemSimulator::AudioInterface::Transforms {
 
 void NtoMono::init( std::map< std::string, std::any > const& config ) {
-  amount_ = std::any_cast< size_t >( config.at( "amount" ) );
+  amount_ = std::any_cast< int64_t >( config.at( "amount" ) );
   logger_->trace( fmt::runtime( "init( {:d} )" ), amount_ );
 
   inPorts = { { "main", {} } };

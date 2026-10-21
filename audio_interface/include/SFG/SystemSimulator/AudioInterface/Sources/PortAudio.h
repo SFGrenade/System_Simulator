@@ -46,9 +46,9 @@ class PortAudio : public Types::AudioSourceNode {
   PaStreamParameters parameters_{};
   std::string sourceName_ = "";
   std::string apiName_ = "";
-  size_t channels_ = 1;
+  int64_t channels_ = 1;
   double sampleRate_ = 0.0;
-  size_t framesPerBuffer_ = 0;
+  int64_t framesPerBuffer_ = 0;
   std::unique_ptr< soxr, decltype( &soxr_delete ) > resampler_{ nullptr, soxr_delete };
 
   // now for performance

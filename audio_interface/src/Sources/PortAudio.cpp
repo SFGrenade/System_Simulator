@@ -14,9 +14,9 @@ namespace SFG::SystemSimulator::AudioInterface::Sources {
 void PortAudio::init( std::map< std::string, std::any > const& config ) {
   sourceName_ = std::any_cast< std::string >( config.at( "sourceName" ) );
   apiName_ = std::any_cast< std::string >( config.at( "apiName" ) );
-  channels_ = std::any_cast< size_t >( config.at( "channels" ) );
+  channels_ = std::any_cast< int64_t >( config.at( "channels" ) );
   sampleRate_ = std::any_cast< double >( config.at( "sampleRate" ) );
-  framesPerBuffer_ = std::any_cast< size_t >( config.at( "framesPerBuffer" ) );
+  framesPerBuffer_ = std::any_cast< int64_t >( config.at( "framesPerBuffer" ) );
   logger_->trace( fmt::runtime( "init( {:?}, {:?}, {:d}, {:f}, {:d} )" ), sourceName_, apiName_, channels_, sampleRate_, framesPerBuffer_ );
 
   PaDeviceIndex inputDeviceIndex = PA::GetDevice( sourceName_, apiName_ );
@@ -29,7 +29,7 @@ void PortAudio::init( std::map< std::string, std::any > const& config ) {
     parameters_.suggestedLatency = deviceInfo->defaultLowInputLatency;
     parameters_.hostApiSpecificStreamInfo = nullptr;
     sampleRate_ = ( sampleRate_ <= 0.0 ) ? deviceInfo->defaultSampleRate : sampleRate_;
-    framesPerBuffer_ = ( framesPerBuffer_ <= 0 ) ? size_t( std::ceil( sampleRate_ * 0.02 ) ) : framesPerBuffer_;
+    framesPerBuffer_ = ( framesPerBuffer_ <= 0 ) ? int64_t( std::ceil( sampleRate_ * 0.02 ) ) : framesPerBuffer_;
 
     logger_->info( fmt::runtime( "Settings:" ) );
     logger_->info( fmt::runtime( "- device: {:d}" ), parameters_.device );
@@ -103,7 +103,7 @@ void PortAudio::update() {
     rawFramesUsed += rawFramesProcessed;
     internalFramesUsed += internalFramesProcessed;
   }
-  logger_->trace( fmt::runtime( "soxr: {:d} (act={:d}) => {:d} (act={:d})" ), rawFrames_, rawFramesUsed, internalFrames_, internalFramesUsed );
+  // logger_->trace( fmt::runtime( "soxr: {:d} (act={:d}) => {:d} (act={:d})" ), rawFrames_, rawFramesUsed, internalFrames_, internalFramesUsed );
 
   auto& outPort = outPorts["main"];
   for( size_t channel = 0; channel < channels_; channel++ ) {

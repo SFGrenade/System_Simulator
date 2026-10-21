@@ -31,7 +31,7 @@ class MonoToN : public Types::AudioTransformNode {
   private:
   // generic
   Logger::spdlogger logger_ = Logger::LoggerFactory::get_logger( "Transforms::MonoToN" );
-  size_t amount_ = 2;
+  int64_t amount_ = 2;
 };
 
 }  // namespace SFG::SystemSimulator::AudioInterface::Transforms
