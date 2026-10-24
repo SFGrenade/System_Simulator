@@ -4,6 +4,8 @@
 // Project Includes
 #include "SFG/SystemSimulator/AudioInterface/Sinks/PortAudio.h"
 #include "SFG/SystemSimulator/AudioInterface/Sinks/WavFile.h"
+#include "SFG/SystemSimulator/AudioInterface/Sources/FlacFile.h"
+#include "SFG/SystemSimulator/AudioInterface/Sources/Mp3File.h"
 #include "SFG/SystemSimulator/AudioInterface/Sources/PortAudio.h"
 #include "SFG/SystemSimulator/AudioInterface/Sources/WavFile.h"
 #include "SFG/SystemSimulator/AudioInterface/Transforms/MonoToN.h"
@@ -56,7 +58,17 @@ GraphConfig::GraphConfig( std::string const& filepath ) {
       }
     }
 
-    if( nodeType == "Sources::PortAudio" ) {
+    if( nodeType == "Sources::FlacFile" ) {
+      std::shared_ptr< Types::Node > node = std::make_shared< Sources::FlacFile >();
+      node->init( nodeConfigMap );
+      sources_.push_back( node );
+      nodeMap_[nodeName] = node;
+    } else if( nodeType == "Sources::Mp3File" ) {
+      std::shared_ptr< Types::Node > node = std::make_shared< Sources::Mp3File >();
+      node->init( nodeConfigMap );
+      sources_.push_back( node );
+      nodeMap_[nodeName] = node;
+    } else if( nodeType == "Sources::PortAudio" ) {
       std::shared_ptr< Types::Node > node = std::make_shared< Sources::PortAudio >();
       node->init( nodeConfigMap );
       sources_.push_back( node );
