@@ -3,6 +3,7 @@ add_requires( "boost" )
 -- for resampling
 add_requires( "soxr" )
 -- for hardware IO
+add_requires( "dr_flac", "dr_mp3", "dr_wav" )
 add_requires( "portaudio" )
 --add_requires( "alsa-lib" )
 --add_requires( "jack2" )
@@ -25,6 +26,7 @@ target( "Audio-Interface" )
 
     add_packages( "boost", { public = true } )
     add_packages( "soxr", { public = true } )
+    add_packages( "dr_flac", "dr_mp3", "dr_wav", { public = true } )
     add_packages( "portaudio", { public = true } )
     --add_packages( "alsa-lib", { public = true } )
     --add_packages( "jack2", { public = true } )
@@ -43,6 +45,7 @@ target( "Audio-Interface" )
     add_headerfiles( "include/(SFG/SystemSimulator/AudioInterface/Types/*.h)" )
     add_headerfiles( "include/(SFG/SystemSimulator/AudioInterface/*.h)" )
 
+    add_files( "src/3rdParty/*.cpp" )
     add_files( "src/Sinks/*.cpp" )
     add_files( "src/Sources/*.cpp" )
     add_files( "src/Transforms/*.cpp" )

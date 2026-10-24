@@ -23,11 +23,11 @@ namespace SFG::SystemSimulator::AudioInterface::Sources {
 /*
   config is:
   {
-    "sourceName" = "",
-    "apiName" = "",
-    "channels" = 1,
-    "sampleRate" = 0.0,
-    "framesPerBuffer" = 0
+    "sourceName": "",
+    "apiName": "",
+    "channels": 1,
+    "sampleRate": 0.0,
+    "framesPerBuffer": 0
   }
 */
 class PortAudio : public Types::AudioSourceNode {

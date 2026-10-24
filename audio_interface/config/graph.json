@@ -10,6 +10,13 @@
         "framesPerBuffer": 0
       }
     },
+    "inputFile": {
+      "type": "Sources::WavFile",
+      "config": {
+        "fileName": "Headphones.Mirror.wav",
+        "framesPerBuffer": 0
+      }
+    },
     "ntoMono": {
       "type": "Transforms::NtoMono",
       "config": {
@@ -51,7 +58,7 @@
       "to-channel": 1
     },
     {
-      "from-node": "ntoMono",
+      "from-node": "inputFile",
       "from-port": "main",
       "from-channel": 0,
       "to-node": "monoToN",

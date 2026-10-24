@@ -3,7 +3,9 @@
 
 // Project Includes
 #include "SFG/SystemSimulator/AudioInterface/Sinks/PortAudio.h"
+#include "SFG/SystemSimulator/AudioInterface/Sinks/WavFile.h"
 #include "SFG/SystemSimulator/AudioInterface/Sources/PortAudio.h"
+#include "SFG/SystemSimulator/AudioInterface/Sources/WavFile.h"
 #include "SFG/SystemSimulator/AudioInterface/Transforms/MonoToN.h"
 #include "SFG/SystemSimulator/AudioInterface/Transforms/NtoMono.h"
 
@@ -59,6 +61,11 @@ GraphConfig::GraphConfig( std::string const& filepath ) {
       node->init( nodeConfigMap );
       sources_.push_back( node );
       nodeMap_[nodeName] = node;
+    } else if( nodeType == "Sources::WavFile" ) {
+      std::shared_ptr< Types::Node > node = std::make_shared< Sources::WavFile >();
+      node->init( nodeConfigMap );
+      sources_.push_back( node );
+      nodeMap_[nodeName] = node;
     } else if( nodeType == "Transforms::MonoToN" ) {
       std::shared_ptr< Types::Node > node = std::make_shared< Transforms::MonoToN >();
       node->init( nodeConfigMap );
@@ -71,6 +78,11 @@ GraphConfig::GraphConfig( std::string const& filepath ) {
       nodeMap_[nodeName] = node;
     } else if( nodeType == "Sinks::PortAudio" ) {
       std::shared_ptr< Types::Node > node = std::make_shared< Sinks::PortAudio >();
+      node->init( nodeConfigMap );
+      sinks_.push_back( node );
+      nodeMap_[nodeName] = node;
+    } else if( nodeType == "Sinks::WavFile" ) {
+      std::shared_ptr< Types::Node > node = std::make_shared< Sinks::WavFile >();
       node->init( nodeConfigMap );
       sinks_.push_back( node );
       nodeMap_[nodeName] = node;
