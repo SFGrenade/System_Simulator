@@ -98,6 +98,9 @@ GraphConfig::GraphConfig( std::string const& filepath ) {
       node->init( nodeConfigMap );
       sinks_.push_back( node );
       nodeMap_[nodeName] = node;
+    } else {
+      logger_->error( fmt::runtime( "GraphConfig - Unknown node type {:?}" ), nodeType );
+      continue;
     }
   }
 
@@ -110,6 +113,13 @@ GraphConfig::GraphConfig( std::string const& filepath ) {
     int64_t toChannel = item.second.get< int64_t >( "to-channel" );
     logger_->trace( fmt::runtime( "GraphConfig - {:?}/{:?}/{:d} => {:?}/{:?}/{:d}" ), fromNode, fromPort, fromChannel, toNode, toPort, toChannel );
 
+    if( !nodeMap_.contains( fromNode ) ) {
+      logger_->error( fmt::runtime( "GraphConfig - Unknown from node {:?}" ), fromNode );
+      continue;
+    } else if( !nodeMap_.contains( toNode ) ) {
+      logger_->error( fmt::runtime( "GraphConfig - Unknown to node {:?}" ), toNode );
+      continue;
+    }
     std::shared_ptr< Types::Node > fn = nodeMap_[fromNode];
     std::shared_ptr< Types::Node > tn = nodeMap_[toNode];
 
@@ -118,15 +128,36 @@ GraphConfig::GraphConfig( std::string const& filepath ) {
     std::shared_ptr< Types::AudioTransformNode > to_audioTransformNode = std::dynamic_pointer_cast< Types::AudioTransformNode >( tn );
     std::shared_ptr< Types::AudioSinkNode > to_audioSinkNode = std::dynamic_pointer_cast< Types::AudioSinkNode >( tn );
 
-    if( from_audioSourceNode && to_audioTransformNode ) {
-      to_audioTransformNode->inPorts[toPort][toChannel] = from_audioSourceNode->outPorts[fromPort][fromChannel];
-    } else if( from_audioSourceNode && to_audioSinkNode ) {
-      to_audioSinkNode->inPorts[toPort][toChannel] = from_audioSourceNode->outPorts[fromPort][fromChannel];
-    } else if( from_audioTransformNode && to_audioTransformNode ) {
-      to_audioTransformNode->inPorts[toPort][toChannel] = from_audioTransformNode->outPorts[fromPort][fromChannel];
-    } else if( from_audioTransformNode && to_audioSinkNode ) {
-      to_audioSinkNode->inPorts[toPort][toChannel] = from_audioTransformNode->outPorts[fromPort][fromChannel];
+    if( !from_audioSourceNode && !from_audioTransformNode ) {
+      logger_->error( fmt::runtime( "GraphConfig - From node {:?} is no source or transform" ), fromNode );
+      continue;
+    } else if( !to_audioTransformNode && !to_audioSinkNode ) {
+      logger_->error( fmt::runtime( "GraphConfig - To node {:?} is no transform or sink" ), toNode );
+      continue;
     }
+
+    std::map< std::string, std::vector< Types::OutputPort< Types::AudioMessage > > >& outPortsToUse = from_audioSourceNode ? from_audioSourceNode->outPorts : from_audioTransformNode->outPorts;
+    std::map< std::string, std::vector< Types::InputPort< Types::AudioMessage > > >& inPortsToUse = to_audioTransformNode ? to_audioTransformNode->inPorts : to_audioSinkNode->inPorts;
+
+    if( outPortsToUse.contains( fromPort ) ) {
+      logger_->error( fmt::runtime( "GraphConfig - Node {:?} has no output {:?}" ), fromNode, fromPort );
+      continue;
+    } else if( inPortsToUse.contains( toPort ) ) {
+      logger_->error( fmt::runtime( "GraphConfig - Node {:?} has no input {:?}" ), toNode, toPort );
+      continue;
+    }
+
+    std::vector< Types::OutputPort< Types::AudioMessage > >& outChannelsToUse = outPortsToUse[fromPort];
+    std::vector< Types::InputPort< Types::AudioMessage > >& inChannelsToUse = inPortsToUse[toPort];
+
+    if( outChannelsToUse.size() <= fromChannel ) {
+      logger_->error( fmt::runtime( "GraphConfig - Node {:?} has no output channel {:d}" ), fromNode, fromChannel );
+      continue;
+    } else if( inChannelsToUse.size() <= toChannel ) {
+      logger_->error( fmt::runtime( "GraphConfig - Node {:?} has no input channel {:d}" ), toNode, toChannel );
+      continue;
+    }
+    inChannelsToUse[toChannel] = outChannelsToUse[fromChannel];
   }
 }
 
