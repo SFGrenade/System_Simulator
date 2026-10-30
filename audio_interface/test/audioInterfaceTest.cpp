@@ -31,161 +31,131 @@ F_t roundTiesZero( F_t x ) {
 }
 
 template < typename T_t, typename F_t = float80_t >
-F_t normalizeSigned( T_t value, size_t bitDepth ) {
-  size_t byteDepth = bitsToBytes< F_t >( bitDepth );
-  T_t tMin = std::numeric_limits< T_t >::min();
-  T_t tMax = std::numeric_limits< T_t >::max();
-  T_t mask = ~T_t{ 0 };
-  if( ( byteDepth * 8 ) == bitDepth ) {
-    // no bitshifting needed
-  } else {
-    // bitshifting needed
-    size_t offset = ( byteDepth * 8 ) - bitDepth;
-    for( size_t i = 0; i < offset; i++ ) {
-      mask = mask ^ ( T_t{ 1 } << i );
-      tMin = tMin ^ ( T_t{ 1 } << i );
-      tMax = tMax ^ ( T_t{ 1 } << i );
-    }
-    value = value & mask;
-  }
+F_t normalize( T_t value, size_t bitDepth ) {
+  value = value >> ( ( bitsToBytes< F_t >( bitDepth ) * 8 ) - bitDepth );
+  F_t maxValue = std::pow< F_t, F_t >( F_t{ 2 }, F_t( bitDepth ) );
   F_t retFloat = F_t{ 0 };
   if( value < T_t{ 0 } ) {
-    retFloat = -F_t( value ) / F_t( tMin );
+    retFloat = -F_t( value ) / ( -( maxValue / F_t{ 2 } ) );
   } else if( value > T_t{ 0 } ) {
-    retFloat = F_t( value ) / F_t( tMax );
+    retFloat = F_t( value ) / ( ( maxValue / F_t{ 2 } ) - F_t{ 1 } );
   }
   return std::clamp( retFloat, F_t{ -1 }, F_t{ 1 } );
 }
-
-template < typename T_t, typename F_t = float80_t >
-F_t normalizeUnsigned( T_t value, size_t bitDepth ) {
-  size_t byteDepth = bitsToBytes< F_t >( bitDepth );
-  T_t tMin = std::numeric_limits< T_t >::min();
-  T_t tMax = std::numeric_limits< T_t >::max();
-  T_t mask = ~T_t{ 0 };
-  if( ( byteDepth * 8 ) == bitDepth ) {
-    // no bitshifting needed
-  } else {
-    // bitshifting needed
-    size_t offset = ( byteDepth * 8 ) - bitDepth;
-    for( size_t i = 0; i < offset; i++ ) {
-      mask = mask ^ ( T_t{ 1 } << i );
-      tMin = tMin ^ ( T_t{ 1 } << i );
-      tMax = tMax ^ ( T_t{ 1 } << i );
-    }
-    value = value & mask;
-  }
-  F_t retFloat = F_t{ 0 };
-  T_t halfWayPoint = ( T_t( tMax / T_t{ 2 } ) + T_t{ 1 } ) & mask;
-  if( value < halfWayPoint ) {
-    retFloat = -F_t( halfWayPoint - value ) / F_t( halfWayPoint );
-  } else if( value > halfWayPoint ) {
-    retFloat = F_t( value - halfWayPoint ) / F_t( tMax - halfWayPoint );
-  }
-  return std::clamp( retFloat, F_t{ -1 }, F_t{ 1 } );
+template <>
+float80_t normalize< uint8_t, float80_t >( uint8_t value, size_t bitDepth ) {
+  return normalize< int8_t, float80_t >( static_cast< int8_t >( value - uint8_t{ 0x80 } ), bitDepth );
+}
+template <>
+float80_t normalize< uint16_t, float80_t >( uint16_t value, size_t bitDepth ) {
+  return normalize< int16_t, float80_t >( static_cast< int16_t >( value - uint16_t{ 0x8000 } ), bitDepth );
+}
+template <>
+float80_t normalize< uint32_t, float80_t >( uint32_t value, size_t bitDepth ) {
+  return normalize< int32_t, float80_t >( static_cast< int32_t >( value - uint32_t{ 0x80000000 } ), bitDepth );
+}
+template <>
+float80_t normalize< uint64_t, float80_t >( uint64_t value, size_t bitDepth ) {
+  return normalize< int64_t, float80_t >( static_cast< int64_t >( value - uint64_t{ 0x8000000000000000 } ), bitDepth );
 }
 
 template < typename T_t, typename F_t = float80_t >
-T_t quantizeSigned( F_t value, size_t bitDepth ) {
+T_t quantize( F_t value, size_t bitDepth ) {
   // scale to [0.0, 1.0]
   value = ( value + F_t{ 1 } ) / F_t{ 2 };
-  F_t powerOf2 = std::pow< F_t, F_t >( F_t{ 2 }, F_t( bitDepth ) );
-  F_t powerOf2Offset = powerOf2 / F_t{ 2 };
-  F_t ret = ( value * powerOf2 ) - powerOf2Offset;
-  F_t minVal = -powerOf2Offset;
-  F_t maxVal = powerOf2 - F_t{ 1 } - powerOf2Offset;
-  ret = roundTiesZero< F_t >( ret - F_t{ 0.5 } );
-  ret = std::clamp< F_t >( ret, minVal, maxVal );
-  return static_cast< T_t >( ret ) << ( ( bitsToBytes( bitDepth ) * 8 ) - bitDepth );
-}
 
-template < typename T_t, typename F_t = float80_t >
-T_t quantizeUnsigned( F_t value, size_t bitDepth ) {
-  // scale to [0.0, 1.0]
-  value = ( value + F_t{ 1 } ) / F_t{ 2 };
   F_t powerOf2 = std::pow< F_t, F_t >( F_t{ 2 }, F_t( bitDepth ) );
-  F_t ret = value * powerOf2;
-  F_t minVal = F_t{ 0 };
-  F_t maxVal = powerOf2 - F_t{ 1 };
+  F_t powerOf2HalfWay = powerOf2 / F_t{ 2 };
+  F_t ret = ( value * powerOf2 ) - powerOf2HalfWay - F_t{ 0.5 };
+  F_t minVal = -powerOf2HalfWay;
+  F_t maxVal = powerOf2 - F_t{ 1 } - powerOf2HalfWay;
   ret = roundTiesZero< F_t >( ret );
   ret = std::clamp< F_t >( ret, minVal, maxVal );
-  return static_cast< T_t >( ret ) << ( ( bitsToBytes( bitDepth ) * 8 ) - bitDepth );
+  return static_cast< T_t >( ret ) << ( ( bitsToBytes< F_t >( bitDepth ) * 8 ) - bitDepth );
+}
+template <>
+uint8_t quantize< uint8_t, float80_t >( float80_t value, size_t bitDepth ) {
+  return quantize< int8_t, float80_t >( value, bitDepth ) + uint8_t{ 0x80 };
+}
+template <>
+uint16_t quantize< uint16_t, float80_t >( float80_t value, size_t bitDepth ) {
+  return quantize< int16_t, float80_t >( value, bitDepth ) + uint16_t{ 0x8000 };
+}
+template <>
+uint32_t quantize< uint32_t, float80_t >( float80_t value, size_t bitDepth ) {
+  return quantize< int32_t, float80_t >( value, bitDepth ) + uint32_t{ 0x80000000 };
+}
+template <>
+uint64_t quantize< uint64_t, float80_t >( float80_t value, size_t bitDepth ) {
+  return quantize< int64_t, float80_t >( value, bitDepth ) + uint64_t{ 0x8000000000000000 };
 }
 
 template < typename T_t, typename F_t = float80_t >
-void testSingleIntAndBitDepth( T_t tmp0, F_t fVal, size_t bitDepth ) {
-  float80_t tmp1 = normalizeSigned< T_t, F_t >( tmp0, bitDepth );
+void testSingleAndBitDepth( T_t tmp0, F_t fVal, size_t bitDepth ) {
+  float80_t tmp1 = normalize< T_t, F_t >( tmp0, bitDepth );
   EXPECT_EQ( tmp1, fVal );
-  T_t tmp2 = quantizeSigned< T_t, F_t >( tmp1, bitDepth );
-  EXPECT_EQ( tmp0, tmp2 );
-}
-
-template < typename T_t, typename F_t = float80_t >
-void testSingleUintAndBitDepth( T_t tmp0, F_t fVal, size_t bitDepth ) {
-  float80_t tmp1 = normalizeUnsigned< T_t, F_t >( tmp0, bitDepth );
-  EXPECT_EQ( tmp1, fVal );
-  T_t tmp2 = quantizeUnsigned< T_t, F_t >( tmp1, bitDepth );
+  T_t tmp2 = quantize< T_t, F_t >( tmp1, bitDepth );
   EXPECT_EQ( tmp0, tmp2 );
 }
 
 TEST( AudioInterface, Test_Uint_2 ) {
-  testSingleUintAndBitDepth( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 2 );
-  testSingleUintAndBitDepth( uint8_t{ 0b1100'0000 }, float80_t{ 1 }, 2 );
-  testSingleUintAndBitDepth( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 2 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 2 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1100'0000 }, float80_t{ 1 }, 2 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 2 );
 }
 
 TEST( AudioInterface, Test_Uint_3 ) {
-  testSingleUintAndBitDepth( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 3 );
-  testSingleUintAndBitDepth( uint8_t{ 0b1110'0000 }, float80_t{ 1 }, 3 );
-  testSingleUintAndBitDepth( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 3 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 3 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1110'0000 }, float80_t{ 1 }, 3 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 3 );
 }
 
 TEST( AudioInterface, Test_Uint_4 ) {
-  testSingleUintAndBitDepth( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 4 );
-  testSingleUintAndBitDepth( uint8_t{ 0b1111'0000 }, float80_t{ 1 }, 4 );
-  testSingleUintAndBitDepth( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 4 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 4 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1111'0000 }, float80_t{ 1 }, 4 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 4 );
 }
 
 TEST( AudioInterface, Test_Uint_5 ) {
-  testSingleUintAndBitDepth( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 5 );
-  testSingleUintAndBitDepth( uint8_t{ 0b1111'1000 }, float80_t{ 1 }, 5 );
-  testSingleUintAndBitDepth( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 5 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 5 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1111'1000 }, float80_t{ 1 }, 5 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 5 );
 }
 
 TEST( AudioInterface, Test_Uint_6 ) {
-  testSingleUintAndBitDepth( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 6 );
-  testSingleUintAndBitDepth( uint8_t{ 0b1111'1100 }, float80_t{ 1 }, 6 );
-  testSingleUintAndBitDepth( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 6 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 6 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1111'1100 }, float80_t{ 1 }, 6 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 6 );
 }
 
 TEST( AudioInterface, Test_Uint_7 ) {
-  testSingleUintAndBitDepth( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 7 );
-  testSingleUintAndBitDepth( uint8_t{ 0b1111'1110 }, float80_t{ 1 }, 7 );
-  testSingleUintAndBitDepth( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 7 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 7 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1111'1110 }, float80_t{ 1 }, 7 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 7 );
 }
 
 TEST( AudioInterface, Test_Uint_8 ) {
-  testSingleUintAndBitDepth( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 8 );
-  testSingleUintAndBitDepth( uint8_t{ 0b1111'1111 }, float80_t{ 1 }, 8 );
-  testSingleUintAndBitDepth( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 8 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1000'0000 }, float80_t{ 0 }, 8 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b1111'1111 }, float80_t{ 1 }, 8 );
+  testSingleAndBitDepth< uint8_t, float80_t >( uint8_t{ 0b0000'0000 }, float80_t{ -1 }, 8 );
 }
 
 TEST( AudioInterface, Test_Int_16 ) {
-  testSingleIntAndBitDepth( int16_t{ 0 }, float80_t{ 0 }, 16 );
-  testSingleIntAndBitDepth( std::numeric_limits< int16_t >::max(), float80_t{ 1 }, 16 );
-  testSingleIntAndBitDepth( std::numeric_limits< int16_t >::min(), float80_t{ -1 }, 16 );
+  testSingleAndBitDepth< int16_t, float80_t >( int16_t{ 0 }, float80_t{ 0 }, 16 );
+  testSingleAndBitDepth< int16_t, float80_t >( std::numeric_limits< int16_t >::max(), float80_t{ 1 }, 16 );
+  testSingleAndBitDepth< int16_t, float80_t >( std::numeric_limits< int16_t >::min(), float80_t{ -1 }, 16 );
 }
 
 TEST( AudioInterface, Test_Int_32 ) {
-  testSingleIntAndBitDepth( int32_t{ 0 }, float80_t{ 0 }, 32 );
-  testSingleIntAndBitDepth( std::numeric_limits< int32_t >::max(), float80_t{ 1 }, 32 );
-  testSingleIntAndBitDepth( std::numeric_limits< int32_t >::min(), float80_t{ -1 }, 32 );
+  testSingleAndBitDepth< int32_t, float80_t >( int32_t{ 0 }, float80_t{ 0 }, 32 );
+  testSingleAndBitDepth< int32_t, float80_t >( std::numeric_limits< int32_t >::max(), float80_t{ 1 }, 32 );
+  testSingleAndBitDepth< int32_t, float80_t >( std::numeric_limits< int32_t >::min(), float80_t{ -1 }, 32 );
 }
 
 TEST( AudioInterface, Test_Int_64 ) {
-  testSingleIntAndBitDepth( int64_t{ 0 }, float80_t{ 0 }, 64 );
-  testSingleIntAndBitDepth( std::numeric_limits< int64_t >::max(), float80_t{ 1 }, 64 );
-  testSingleIntAndBitDepth( std::numeric_limits< int64_t >::min(), float80_t{ -1 }, 64 );
+  testSingleAndBitDepth< int64_t, float80_t >( int64_t{ 0 }, float80_t{ 0 }, 64 );
+  testSingleAndBitDepth< int64_t, float80_t >( std::numeric_limits< int64_t >::max(), float80_t{ 1 }, 64 );
+  testSingleAndBitDepth< int64_t, float80_t >( std::numeric_limits< int64_t >::min(), float80_t{ -1 }, 64 );
 }
 
 TEST( AudioInterface, Example ) {
